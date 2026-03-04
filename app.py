@@ -4,11 +4,11 @@ from werkzeug.utils import secure_filename
 import os
 import locale
 import calendar
-from datetime import datetime
+from datetime import datetime, timedelta
 from fpdf import FPDF
 import cloudinary
 import cloudinary.uploader
-from sqlalchemy import extract
+from sqlalchemy import extract, or_
 from dotenv import load_dotenv
 
 # ================= CONFIGURATION =================
@@ -22,9 +22,9 @@ except:
 
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "prime_business_secure_key")
+app.secret_key = os.environ.get("SECRET_KEY", "hotel_prestige_2026_key")
 
-# DB Config
+# Configuration de la Base de Données
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
@@ -32,7 +32,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# Cloudinary Config
+# Configuration Cloudinary
 cloudinary.config(
     cloud_name=os.environ.get("CLOUD_NAME"),
     api_key=os.environ.get("CLOUD_API_KEY"),
@@ -40,6 +40,7 @@ cloudinary.config(
     secure=True
 )
 
+# ================= MODÈLE DE DONNÉES =================
 class FicheClient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
@@ -66,7 +67,8 @@ def format_date_fr(date_str):
 # ================= ROUTES =================
 
 @app.route('/')
-def accueil(): return render_template('accueil.html')
+def accueil(): 
+    return render_template('accueil.html')
 
 @app.route('/gerant', methods=['GET', 'POST'])
 def gerant():
@@ -86,73 +88,34 @@ def dashboard():
 @app.route('/fiche', methods=['GET', 'POST'])
 def fiche():
     if not session.get('logged_in'): return redirect(url_for('gerant'))
-
     if request.method == 'POST':
         data = request.form.to_dict()
-        
-        # Vérification des champs requis
-        champs_requis = [
-            'nom', 'prenom', 'date_naissance', 'lieu_naissance', 'nationalite',
-            'profession', 'domicile', 'provenance', 'destination', 'transport',
-            'telephone', 'motif', 'type_piece', 'numero_piece', 'date_delivrance',
-            'lieu_delivrance', 'date_arrivee', 'date_depart'
-        ]
+        champs_requis = ['nom', 'prenom', 'date_arrivee', 'date_depart', 'nationalite']
         for c in champs_requis:
             if not data.get(c):
-                return render_template('fiche.html', erreur=f"Le champ {c} est vide.")
+                return render_template('fiche.html', erreur=f"Le champ {c} est obligatoire.")
 
         nom_client = data.get('nom', '').upper()
-        
-        # --- GÉNÉRATION PDF (TOUT À GAUCHE) ---
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_left_margin(20) # Marge de gauche propre
-
-        # Titres alignés à gauche
         pdf.set_font("Arial", 'B', 16)
         pdf.cell(0, 10, "HOTEL LE PRESTIGE MARADI", ln=True, align='L')
-        pdf.set_font("Arial", 'B', 12)
-        pdf.cell(0, 10, "FICHE DE RENSEIGNEMENT CLIENT", ln=True, align='L')
         pdf.ln(5)
-
-        # Liste plate de toutes les infos
         pdf.set_font("Arial", '', 11)
         
         infos = [
-            f"Nom : {nom_client}",
-            f"Prénom : {data.get('prenom')}",
-            f"Date de naissance : {format_date_fr(data.get('date_naissance'))}",
-            f"Lieu de naissance : {data.get('lieu_naissance')}",
-            f"Nationalité : {data.get('nationalite')}",
-            f"Profession : {data.get('profession')}",
-            f"Organisme : {data.get('organisme', 'N/A')}",
-            f"Domicile : {data.get('domicile')}",
-            f"Provenance : {data.get('provenance')}",
-            f"Destination : {data.get('destination')}",
-            f"Moyen de transport : {data.get('transport')}",
-            f"Téléphone : {data.get('telephone')}",
-            f"Motif du voyage : {data.get('motif')}",
-            f"Type de pièce : {data.get('type_piece')}",
-            f"Numéro de pièce : {data.get('numero_piece')}",
-            f"Délivrée le : {format_date_fr(data.get('date_delivrance'))}",
-            f"Lieu de délivrance : {data.get('lieu_delivrance')}",
-            f"Date d'arrivée : {format_date_fr(data.get('date_arrivee'))}",
-            f"Date de départ prévue : {format_date_fr(data.get('date_depart'))}"
+            f"Nom : {nom_client}", 
+            f"Prenom : {data.get('prenom')}",
+            f"Provenance : {data.get('provenance', 'N/A')}",
+            f"Arrivee : {format_date_fr(data.get('date_arrivee'))}", 
+            f"Depart : {format_date_fr(data.get('date_depart'))}"
         ]
-
         for info in infos:
-            pdf.cell(0, 8, info, ln=True, align='L')
-
-        pdf.ln(10)
-        pdf.set_font("Arial", 'I', 10)
-        pdf.cell(0, 6, f"Signé par l'agent : {session.get('prenom_gerant')} {session.get('nom_gerant')}", ln=True, align='L')
-        pdf.cell(0, 6, f"Fait le : {datetime.now().strftime('%d/%m/%Y à %H:%M')}", ln=True, align='L')
+            pdf.cell(0, 8, info.encode('latin-1', 'replace').decode('latin-1'), ln=True)
 
         temp_pdf = f"temp_{secure_filename(nom_client)}.pdf"
         pdf.output(temp_pdf)
-
-        # Upload & DB
-        upload_res = cloudinary.uploader.upload(temp_pdf, resource_type="raw", public_id=f"fiches/{nom_client}_{int(datetime.now().timestamp())}")
+        upload_res = cloudinary.uploader.upload(temp_pdf, resource_type="raw")
         os.remove(temp_pdf)
 
         d_arr = datetime.strptime(data.get('date_arrivee'), '%Y-%m-%d').date()
@@ -165,9 +128,65 @@ def fiche():
         )
         db.session.add(nouvelle_fiche)
         db.session.commit()
-
         return render_template('fiche.html', success=True)
     return render_template('fiche.html')
+
+@app.route('/stats')
+def stats():
+    if not session.get('logged_in'): return redirect(url_for('gerant'))
+    
+    now = datetime.now()
+    mois = int(request.args.get('mois', now.month))
+    annee = int(request.args.get('annee', now.year))
+    
+    debut_mois = datetime(annee, mois, 1).date()
+    _, nb_jours = calendar.monthrange(annee, mois)
+    fin_mois = datetime(annee, mois, nb_jours).date()
+    limite_comptable = fin_mois + timedelta(days=1)
+
+    fiches = FicheClient.query.filter(
+        FicheClient.date_arrivee <= fin_mois, 
+        FicheClient.date_depart >= debut_mois
+    ).all()
+    
+    total_nuitees = 0
+    clients_debut = 0
+    clients_fin = 0
+    nationalites = {}
+    
+    date_20 = datetime(annee, mois, min(20, nb_jours)).date()
+    date_21 = datetime(annee, mois, min(21, nb_jours)).date()
+    
+    for f in fiches:
+        d_eff = max(f.date_arrivee, debut_mois)
+        f_eff = min(f.date_depart, limite_comptable)
+        n_nuits = (f_eff - d_eff).days
+        total_nuitees += max(n_nuits, 0)
+        
+        if f.date_arrivee <= date_20 and f.date_depart >= debut_mois:
+            clients_debut += 1
+        if f.date_depart >= date_21 and f.date_arrivee <= fin_mois:
+            clients_fin += 1
+        
+        if f.nationalite:
+            nationalites[f.nationalite] = nationalites.get(f.nationalite, 0) + 1
+
+    months_fr = ["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
+    
+    stats_data = {
+        "total_nuitees": total_nuitees,
+        "chambres_occupees": 9,
+        "clients_debut": clients_debut,
+        "clients_fin": clients_fin,
+        "chiffre_affaires": total_nuitees * 17500,
+        "taux_occupation": round((total_nuitees * 100) / (9 * nb_jours), 2) if nb_jours else 0,
+        "nationalites": nationalites,
+        "mois_num": mois,
+        "mois_nom": months_fr[mois],
+        "annee": annee
+    }
+    
+    return render_template("stats.html", stats=stats_data, datetime_now=now.strftime("%d/%m/%Y %H:%M"), calendar=calendar)
 
 @app.route('/pdfs')
 def pdfs():
@@ -185,36 +204,6 @@ def supprimer_pdf(id):
     db.session.delete(fiche)
     db.session.commit()
     return redirect(url_for('pdfs'))
-
-@app.route('/stats')
-def stats():
-    if not session.get('logged_in'): return redirect(url_for('gerant'))
-    now = datetime.now()
-    mois = int(request.args.get('mois', now.month))
-    annee = int(request.args.get('annee', now.year))
-    fiches = FicheClient.query.filter(extract('month', FicheClient.date_arrivee) == mois, extract('year', FicheClient.date_arrivee) == annee).all()
-    
-    total_nuitees, debut_mois, fin_mois = 0, 0, 0
-    nationalites, provenances = {}, {}
-    for f in fiches:
-        if f.date_depart and f.date_arrivee:
-            nuitees = max((f.date_depart - f.date_arrivee).days, 1)
-            total_nuitees += nuitees
-            if f.date_arrivee.day <= 20: debut_mois += nuitees
-            else: fin_mois += nuitees
-        if f.nationalite: nationalites[f.nationalite] = nationalites.get(f.nationalite, 0) + 1
-        if f.provenance: provenances[f.provenance] = provenances.get(f.provenance, 0) + 1
-
-    _, nb_jours = calendar.monthrange(annee, mois)
-    stats_data = {
-        "total": len(fiches), "total_nuitees": total_nuitees, "debut_mois": debut_mois,
-        "fin_mois": fin_mois, "chiffre_affaires": total_nuitees * 17500,
-        "taux_occupation": round((total_nuitees * 100) / (9 * nb_jours), 2) if nb_jours else 0,
-        "nationalites": nationalites, "provenances": provenances,
-        "mois_num": mois, "mois_nom": calendar.month_name[mois].capitalize(),
-        "annee": annee, "nb_jours_mois": nb_jours
-    }
-    return render_template("stats.html", stats=stats_data, datetime_now=now.strftime("%d/%m/%Y %H:%M"))
 
 if __name__ == "__main__":
     app.run(debug=True)
