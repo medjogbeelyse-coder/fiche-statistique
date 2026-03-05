@@ -2,37 +2,174 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Fiche de Renseignement Complète - Hôtel Le Prestige</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enregistrement - Hôtel Le Prestige</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .section-title { background: #2c3e50; color: white; padding: 8px 15px; border-radius: 5px; margin: 20px 0 15px 0; font-size: 14px; text-transform: uppercase; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .form-group { display: flex; flex-direction: column; }
-        label { font-weight: bold; font-size: 12px; color: #555; margin-bottom: 5px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
-        .btn-valider { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 30px; }
-        .alert { padding: 15px; text-align: center; border-radius: 5px; margin-bottom: 20px; }
-        .alert-error { background: #f8d7da; color: #721c24; }
-        .alert-success { background: #d4edda; color: #155724; }
+        :root {
+            --prestige-gold: #c5a059;
+            --paper-ivory: #fdfaf1;
+            --sand-bg: #e8e2d6;
+            --text-ebony: #2c2c2c;
+            --border-soft: rgba(197, 160, 89, 0.4);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sand-bg);
+            background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+            color: var(--text-ebony);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 100%;
+            background: var(--paper-ivory);
+            padding: 60px;
+            border-radius: 2px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.15);
+            border: 1px solid var(--border-soft);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 2px solid var(--prestige-gold);
+            padding-bottom: 25px;
+        }
+
+        header h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.8rem;
+            letter-spacing: 5px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        header p {
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            color: var(--prestige-gold);
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        /* --- SECTIONS --- */
+        .section-title {
+            font-family: 'Cinzel', serif;
+            color: var(--prestige-gold);
+            background: rgba(197, 160, 89, 0.08);
+            padding: 10px 20px;
+            margin: 40px 0 25px 0;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            border-left: 4px solid var(--prestige-gold);
+        }
+
+        /* --- GRILLE RÉVISÉE (2 COLONNES POUR PLUS D'ESPACE) --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Passage à 2 colonnes */
+            gap: 25px 40px; /* Plus d'espace entre les lignes et colonnes */
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Pour les champs qui doivent prendre toute la largeur */
+        .full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #555;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        input, select {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--border-soft);
+            padding: 14px;
+            border-radius: 0;
+            color: var(--text-ebony);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--prestige-gold);
+            background: white;
+            box-shadow: 0 5px 15px rgba(197, 160, 89, 0.1);
+        }
+
+        /* --- BOUTON --- */
+        .btn-valider {
+            background: var(--text-ebony);
+            color: var(--paper-ivory);
+            border: none;
+            padding: 22px;
+            width: 100%;
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            cursor: pointer;
+            margin-top: 50px;
+            transition: 0.4s;
+        }
+
+        .btn-valider:hover {
+            background: var(--prestige-gold);
+            color: white;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="text-align: center; color: #2c3e50; margin-top: 0;">📋 FICHE DE RENSEIGNEMENT CLIENT</h2>
-
-    {% if erreur %}<div class="alert alert-error">{{ erreur }}</div>{% endif %}
-    {% if success %}<div class="alert alert-success">✅ Enregistrement effectué avec succès !</div>{% endif %}
+    <header>
+        <h2>Fiche de Renseignement</h2>
+        <p>Registre de l'Établissement</p>
+    </header>
 
     <form action="{{ url_for('fiche') }}" method="POST" id="policeForm">
         
         <div class="section-title">1. État Civil & Identité</div>
         <div class="grid">
-            <div class="form-group"><label>Nom</label><input type="text" name="nom" required style="text-transform: uppercase;"></div>
+            <div class="form-group"><label>Nom de famille</label><input type="text" name="nom" required style="text-transform: uppercase;"></div>
             <div class="form-group"><label>Prénom(s)</label><input type="text" name="prenom" required></div>
             <div class="form-group"><label>Nationalité</label><input type="text" name="nationalite" required></div>
-            
             <div class="form-group"><label>Date de Naissance</label><input type="date" name="date_naissance"></div>
             <div class="form-group"><label>Lieu de Naissance</label><input type="text" name="lieu_naissance"></div>
             <div class="form-group"><label>Situation Familiale</label>
@@ -42,52 +179,51 @@
                     <option>Veuf/Veuve</option>
                 </select>
             </div>
-            
             <div class="form-group"><label>Profession</label><input type="text" name="profession"></div>
-            <div class="form-group"><label>Téléphone</label><input type="text" name="telephone" required></div>
+            <div class="form-group"><label>Contact Téléphonique</label><input type="text" name="telephone" required></div>
         </div>
 
         <div class="section-title">2. Domicile & Itinéraire</div>
         <div class="grid">
-            <div class="form-group" style="grid-column: span 2;"><label>Domicile Habituel (Ville/Pays)</label><input type="text" name="domicile_habituel"></div>
-            <div class="form-group"><label>Provenance</label><input type="text" name="provenance"></div>
-            <div class="form-group"><label>Destination</label><input type="text" name="destination"></div>
-            <div class="form-group"><label>Mode de Transport</label><input type="text" name="mode_transport" placeholder="Avion, Bus, Auto..."></div>
-            <div class="form-group"><label>N° Immatriculation (si auto)</label><input type="text" name="immatriculation"></div>
+            <div class="form-group full-width"><label>Domicile Habituel (Ville / Pays)</label><input type="text" name="domicile_habituel"></div>
+            <div class="form-group"><label>Lieu de Provenance</label><input type="text" name="provenance"></div>
+            <div class="form-group"><label>Destination Finale</label><input type="text" name="destination"></div>
+            <div class="form-group"><label>Mode de Transport</label><input type="text" name="mode_transport" placeholder="Auto, Avion, Bus..."></div>
+            <div class="form-group"><label>Immatriculation du véhicule</label><input type="text" name="immatriculation"></div>
         </div>
 
         <div class="section-title">3. Pièce d'Identité</div>
         <div class="grid">
-            <div class="form-group"><label>Type de pièce</label>
+            <div class="form-group"><label>Type de document</label>
                 <select name="type_piece">
-                    <option>CNI</option>
+                    <option>CNI (Carte d'identité)</option>
                     <option>Passeport</option>
-                    <option>Permis</option>
+                    <option>Permis de conduire</option>
                     <option>Autre</option>
                 </select>
             </div>
             <div class="form-group"><label>Numéro de la pièce</label><input type="text" name="num_piece" required></div>
             <div class="form-group"><label>Date de délivrance</label><input type="date" name="date_delivrance"></div>
-            <div class="form-group" style="grid-column: span 3;"><label>Lieu de délivrance</label><input type="text" name="lieu_delivrance"></div>
+            <div class="form-group"><label>Lieu de délivrance</label><input type="text" name="lieu_delivrance"></div>
         </div>
 
-        <div class="section-title">4. Séjour à l'Hôtel</div>
+        <div class="section-title">4. Détails du Séjour</div>
         <div class="grid">
-            <div class="form-group"><label>N° Chambre</label>
+            <div class="form-group"><label>Numéro de Chambre / Suite</label>
                 <select name="chambre_num">
-                    {% for i in range(1,10) %}
-                    <option value="{{ '%02d'|format(i) }}">Chambre {{ '%02d'|format(i) }}</option>
+                    {% for i in range(1,11) %}
+                    <option value="{{ '%02d'|format(i) }}">Suite {{ '%02d'|format(i) }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-group"><label>Date Arrivée</label><input type="date" name="date_arrivee" id="arr" required></div>
-            <div class="form-group"><label>Date Départ Prévue</label><input type="date" name="date_depart" id="dep" required></div>
+            <div class="form-group"></div> <div class="form-group"><label>Date d'Arrivée</label><input type="date" name="date_arrivee" id="arr" required></div>
+            <div class="form-group"><label>Date de Départ Prévue</label><input type="date" name="date_depart" id="dep" required></div>
         </div>
 
-        <button type="submit" class="btn-valider">💾 ENREGISTRER LA FICHE CLIENT</button>
+        <button type="submit" class="btn-valider">💾 VALIDER ET ENREGISTRER</button>
     </form>
     
-    <a href="{{ url_for('dashboard') }}" style="display: block; text-align: center; margin-top: 20px; color: #7f8c8d; text-decoration: none;">⬅ Annuler et Retour</a>
+    <a href="{{ url_for('dashboard') }}" class="back-link">⬅ Retour au menu de gestion</a>
 </div>
 
 <script>
@@ -95,7 +231,7 @@
         var d1 = new Date(document.getElementById('arr').value);
         var d2 = new Date(document.getElementById('dep').value);
         if (d2 <= d1) {
-            alert("ERREUR : La date de départ doit être strictement supérieure à la date d'arrivée.");
+            alert("Erreur : Le départ doit être après l'arrivée.");
             e.preventDefault();
         }
     };

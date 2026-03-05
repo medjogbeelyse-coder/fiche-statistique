@@ -3,274 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Prestige - Hôtel Le Prestige</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Réception - Hôtel Le Prestige</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --blue-plate: #003366;    
-            --green-border: #2e8b57;  
-            --gold: #b8860b; 
-            --gold-bright: #ffd700;
-            --gold-light: #f3e5ab;
-            --text-dark: #334155;
-            --text-muted: #64748b;
-            --bg-gradient: radial-gradient(circle at center, #e2e8f0 0%, #cbd5e1 100%);
+            --primary-gold: #c5a059;
+            --dark-ebony: #0f0f0f;
+            --soft-white: #f4f4f4;
+            --transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-gradient);
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark-ebony);
+            color: var(--soft-white);
             margin: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            color: var(--text-dark);
             overflow: hidden;
-            position: relative;
         }
 
-        /* --- PARTICULES --- */
-        #particles-container {
+        /* --- BACKGROUND ORNAMENT --- */
+        body::before {
+            content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .particle {
-            position: absolute;
-            background: var(--gold);
-            border-radius: 50%;
-            opacity: 0.15;
-            animation: float 15s infinite linear;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
-            50% { opacity: 0.3; }
-            100% { transform: translateY(-10vh) translateX(30px); opacity: 0; }
-        }
-
-        /* --- DASHBOARD --- */
-        .dashboard-container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 420px;
-            padding: 40px;
-            text-align: center;
-            background: rgba(248, 250, 252, 0.92);
-            backdrop-filter: blur(15px);
-            border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.1);
-        }
-
-        .welcome-header h1 {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            color: var(--text-muted);
-            margin-bottom: 25px;
-        }
-
-        /* --- BADGE GERANT --- */
-        .plate-frame {
-            width: 170px;
-            height: 170px;
-            margin: 0 auto 35px auto;
-            padding: 6px;
-            border: 1px solid var(--green-border);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            animation: pulseGlow 4s infinite ease-in-out;
-        }
-
-        .gerant-circle {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
-            border: 3px double var(--green-border);
-            background: var(--blue-plate);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #0f0f0f 100%);
+            z-index: -1;
         }
 
-        .nom-anim {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.1rem;
-            color: #ffffff;
-            font-weight: 700;
+        .main-viewport {
+            width: 90%;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        /* --- TITRE TYPE CONCIERGERIE --- */
+        .hotel-brand {
+            margin-bottom: 80px;
+            animation: fadeInDown 1.2s ease-out;
+        }
+
+        .hotel-brand h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            letter-spacing: 12px;
+            margin: 0;
+            color: var(--primary-gold);
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
 
-        .circle-sep {
-            width: 30%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.2);
-            margin: 8px 0;
+        .hotel-brand p {
+            font-weight: 200;
+            letter-spacing: 6px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 15px;
         }
 
-        .prenom-anim {
-            font-family: 'Playfair Display', serif;
-            font-size: 1rem;
-            color: #ffffff;
-            font-style: italic;
-        }
-
-        /* --- MENU --- */
-        .menu-options {
+        /* --- FLOATING KEY-CARDS CONTAINER --- */
+        .cards-flex {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-
-        .menu-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 18px;
-            border-radius: 18px;
-            text-decoration: none;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            transition: 0.3s;
-        }
-
-        .menu-item:hover {
-            border-color: var(--green-border);
-            background: #ffffff;
-            transform: scale(1.02);
-        }
-
-        .menu-item .icon { font-size: 1.4rem; margin-right: 15px; }
-        .menu-item .label { text-align: left; }
-        .menu-item .label b { display: block; font-size: 0.95rem; }
-        .menu-item .label span { font-size: 0.7rem; color: var(--text-muted); }
-
-        /* --- ADMINISTRATION AVEC NOTIFICATION --- */
-        .admin-box {
-            margin-top: 10px;
-            padding-top: 25px;
-            border-top: 1px dashed #cbd5e1;
-        }
-
-        .admin-button {
-            position: relative; /* Pour positionner le badge */
-            display: flex;
-            align-items: center;
             justify-content: center;
-            gap: 10px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: var(--gold-light);
-            text-decoration: none;
-            padding: 15px;
+            gap: 50px;
+            perspective: 1500px;
+        }
+
+        .key-card {
+            position: relative;
+            width: 280px;
+            height: 400px;
+            background: linear-gradient(145deg, #1a1a1a, #111);
+            border: 1px solid rgba(197, 160, 89, 0.3);
             border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            border: 1px solid var(--gold);
-            transition: all 0.4s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            text-decoration: none;
+            color: var(--soft-white);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px;
+            box-sizing: border-box;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            transition: var(--transition);
+            transform-style: preserve-3d;
         }
 
-        .admin-button:hover {
-            box-shadow: 0 0 20px rgba(184, 134, 11, 0.4);
-            transform: translateY(-2px);
-            color: #ffffff;
+        .key-card:hover {
+            transform: translateY(-25px) rotateY(10deg);
+            border-color: var(--primary-gold);
+            box-shadow: 0 50px 80px rgba(197, 160, 89, 0.15);
         }
 
-        /* LE BADGE DE NOTIFICATION */
-        .notification-badge {
+        /* Ligne décorative sur la carte (comme une carte magnétique) */
+        .key-card::before {
+            content: '';
             position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 12px;
-            height: 12px;
-            background: var(--gold-bright);
-            border-radius: 50%;
-            border: 2px solid #0f172a;
-            box-shadow: 0 0 10px var(--gold-bright);
-            animation: pulseNotification 2s infinite;
+            top: 40px;
+            right: 20px;
+            width: 1px;
+            height: 60px;
+            background: var(--primary-gold);
+            opacity: 0.5;
         }
 
-        @keyframes pulseNotification {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-            70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
+        .card-number {
+            font-family: 'Cinzel', serif;
+            font-size: 0.8rem;
+            color: var(--primary-gold);
+            letter-spacing: 3px;
         }
 
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(46, 139, 87, 0.1); }
-            50% { box-shadow: 0 0 20px rgba(46, 139, 87, 0.2); }
+        .card-main-content {
+            text-align: left;
+        }
+
+        .card-main-content .icon {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            display: block;
+            color: var(--primary-gold);
+        }
+
+        .card-main-content h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        .card-main-content p {
+            font-size: 0.75rem;
+            line-height: 1.6;
+            margin-top: 15px;
+            font-weight: 300;
+            opacity: 0.6;
+        }
+
+        .card-footer {
+            text-align: right;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.4;
+        }
+
+        /* --- ADMIN BOTTOM LINK --- */
+        .admin-footer {
+            margin-top: 80px;
+            animation: fadeInUp 1.5s ease-out;
+        }
+
+        .admin-link {
+            text-decoration: none;
+            color: var(--primary-gold);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 15px 30px;
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            transition: var(--transition);
+        }
+
+        .admin-link:hover {
+            background: var(--primary-gold);
+            color: var(--dark-ebony);
+            box-shadow: 0 0 30px rgba(197, 160, 89, 0.4);
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 700px) {
+            .cards-flex { flex-direction: column; align-items: center; }
+            body { overflow-y: auto; }
+            .main-viewport { padding: 40px 0; }
         }
     </style>
 </head>
 <body>
 
-    <div id="particles-container"></div>
+    <div class="main-viewport">
+        
+        <header class="hotel-brand">
+            <h1>Le Prestige</h1>
+            <p>Espace Gérance — {{ session['prenom_gerant'] }} {{ session['nom_gerant'] }}</p>
+        </header>
 
-    <div class="dashboard-container">
-        <div class="welcome-header">
-            <h1>Espace Gérance</h1>
+        <div class="cards-flex">
             
-            <div class="plate-frame">
-                <div class="gerant-circle">
-                    <span class="nom-anim">{{ session['nom_gerant'] }}</span>
-                    <div class="circle-sep"></div>
-                    <span class="prenom-anim">{{ session['prenom_gerant'] }}</span>
+            <a href="{{ url_for('fiche') }}" class="key-card">
+                <div class="card-number">SUITE 01</div>
+                <div class="card-main-content">
+                    <span class="icon">🖋️</span>
+                    <h2>Enregistrement</h2>
+                    <p>Formalités d'arrivée et création des fiches de police pour les nouveaux résidents.</p>
                 </div>
-            </div>
+                <div class="card-footer">Accès Membre</div>
+            </a>
+
+            <a href="{{ url_for('pdfs') }}" class="key-card">
+                <div class="card-number">SUITE 02</div>
+                <div class="card-main-content">
+                    <span class="icon">📜</span>
+                    <h2>Archives</h2>
+                    <p>Consultation sécurisée de l'historique des séjours et des registres numériques.</p>
+                </div>
+                <div class="card-footer">Accès Membre</div>
+            </a>
+
         </div>
 
-        <div class="menu-options">
-            <a href="{{ url_for('fiche') }}" class="menu-item">
-                <div class="icon">🖋️</div>
-                <div class="label">
-                    <b>Enregistrement</b>
-                    <span>Nouvelle fiche voyageur</span>
-                </div>
+        <footer class="admin-footer">
+            <a href="{{ url_for('stats') }}" class="admin-link">
+                ⚙️ Administration Système
             </a>
-            <a href="{{ url_for('pdfs') }}" class="menu-item">
-                <div class="icon">📜</div>
-                <div class="label">
-                    <b>Archives</b>
-                    <span>Consulter la base PDF</span>
-                </div>
-            </a>
-        </div>
+        </footer>
 
-        <div class="admin-box">
-            <a href="{{ url_for('stats') }}" class="admin-button">
-                <span>⚙️ Administration</span>
-                <div class="notification-badge"></div>
-            </a>
-        </div>
     </div>
-
-    <script>
-        const container = document.getElementById('particles-container');
-        for (let i = 0; i < 20; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            const size = Math.random() * 3 + 2 + 'px';
-            particle.style.width = size;
-            particle.style.height = size;
-            particle.style.left = Math.random() * 100 + 'vw';
-            particle.style.animationDuration = (Math.random() * 8 + 10) + 's';
-            particle.style.animationDelay = (Math.random() * 5) + 's';
-            container.appendChild(particle);
-        }
-    </script>
 
 </body>
 </html>
