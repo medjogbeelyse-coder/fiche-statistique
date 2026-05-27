@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>HOTEL PENSION LE PRESTIGE</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom right, #e0f7f1, #c3f0d9);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .accueil {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px 80px;
+            border-radius: 20px;
+            box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .titre-principal {
+            font-size: 3em;
+            font-weight: 700;
+            color: #006633;
+            text-shadow: 2px 2px #a3d9a5;
+            margin-bottom: 25px;
+        }
+
+        .titre-principal .prestige {
+            color: #004d26;
+        }
+
+        .nom-directeur {
+            font-size: 1.4em;
+            font-weight: 500;
+            color: #034d27;
+            margin-bottom: 50px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 18px 45px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #006633;
+            border: none;
+            border-radius: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            background-color: #004d26;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="accueil">
+        <h1 class="titre-principal">HOTEL PENSION <span class="prestige">LE PRESTIGE</span></h1>
+        <p class="nom-directeur">Directeur : HOUGBETODE Codjo Guy</p>
+        <a href="{{ url_for('gerant') }}" class="btn">Entrer</a>
+    </div>
+</body>
+</html>

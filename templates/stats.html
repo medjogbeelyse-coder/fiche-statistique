@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport - {{ stats.mois_nom }} {{ stats.annee }}</title>
+    <style>
+        /* Styles de base optimisés pour l'écran */
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.2; color: #333; background-color: #f4f7f6; margin: 0; padding: 0; }
+        .container { max-width: 800px; margin: 10px auto; background: white; padding: 20px 35px; border-radius: 5px; }
+        
+        h1 { font-size: 20px; color: #2c3e50; text-align: center; margin: 0; border-bottom: 2px solid #2c3e50; }
+        h2 { font-size: 16px; color: #2c3e50; text-align: center; margin: 5px 0; }
+        h3 { font-size: 14px; color: #2980b9; border-left: 4px solid #2980b9; padding-left: 8px; margin: 15px 0 5px 0; background: #f9f9f9; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 13px; }
+        th, td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
+        th { background-color: #eee; color: #000; }
+        .highlight { font-weight: bold; color: #d35400; }
+        
+        .footer { font-size: 11px; margin-top: 20px; text-align: center; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 10px; }
+        
+        /* Barre de navigation invisible à l'impression */
+        .nav-bar { background: #fff; padding: 10px; margin-bottom: 10px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
+        .btn-print { background: #27ae60; color: white; padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+
+        /* CONFIGURATION IMPRESSION A4 UNIQUE PAGE */
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .container { 
+                width: 100%; 
+                margin: 0; 
+                padding: 0; 
+                box-shadow: none;
+            }
+            @page {
+                size: A4;
+                margin: 1cm; /* Marges de sécurité */
+            }
+            h1 { font-size: 22px; }
+            h3 { margin-top: 10px; }
+            table { margin-bottom: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print nav-bar">
+        <a href="{{ url_for('dashboard') }}" style="color: #2c3e50; font-weight: bold; text-decoration: none;">⬅ DASHBOARD</a>
+        <form action="{{ url_for('stats') }}" method="get" style="display: flex; gap: 5px;">
+            <select name="mois">
+                {% for i in range(1, 13) %}
+                <option value="{{ i }}" {% if i == stats.mois_num %}selected{% endif %}>{{ calendar.month_name[i].capitalize() }}</option>
+                {% endfor %}
+            </select>
+            <select name="annee">
+                {% for a in range(2025, 2028) %}
+                <option value="{{ a }}" {% if a == stats.annee %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">FILTRER</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h1>HOTEL LE PRESTIGE - MARADI</h1>
+        <h2>RAPPORT DE STATISTIQUES MENSUELLES</h2>
+        <p style="text-align: center; font-weight: bold; margin: 2px 0; font-size: 14px;">Période : {{ stats.mois_nom }} {{ stats.annee }}</p>
+
+        <h3>1. Ressources Humaines & Capacité</h3>
+        <table>
+            <tr><td style="width: 70%;">Employés Permanents</td><td>00</td></tr>
+            <tr><td>Employés Temporaires</td><td>06</td></tr>
+            <tr><td>Chambres Offertes</td><td>09</td></tr>
+            <tr>
+                <td>Chambres Occupées</td>
+                <td class="highlight">{{ "%02d"|format(stats.chambres_occupees) }}</td>
+            </tr>
+        </table>
+
+        <h3>2. Fréquentation & Exploitation</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 70%;">Indicateurs de Performance</th>
+                    <th>Valeurs</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Nombre de clients - Début de mois (01 au 20)</td>
+                    <td class="highlight">{{ stats.clients_debut }}</td>
+                </tr>
+                <tr>
+                    <td>Nombre de clients - Fin de mois (21 au {{ calendar.monthrange(stats.annee, stats.mois_num)[1] }})</td>
+                    <td class="highlight">{{ stats.clients_fin }}</td>
+                </tr>
+                <tr>
+                    <td>Total des Nuitées du mois</td>
+                    <td>{{ stats.total_nuitees }} nuitée(s)</td>
+                </tr>
+                <tr>
+                    <td>Chiffre d'Affaires Mensuel (Hébergement)</td>
+                    <td class="highlight">{{ "{:,.0f}".format(stats.chiffre_affaires).replace(',', ' ') }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Taux d'Occupation moyen</td>
+                    <td>{{ stats.taux_occupation }} %</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. Nationalités</h3>
+        <table>
+            <thead>
+                <tr><th>Pays d'origine</th><th style="width: 100px;">Effectif</th></tr>
+            </thead>
+            <tbody>
+                {% for pays, count in stats.nationalites.items() %}
+                <tr><td>{{ pays }}</td><td>{{ count }}</td></tr>
+                {% else %}
+                <tr><td colspan="2" style="text-align: center;">Néant</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <p style="margin: 2px 0;">Rapport généré le {{ datetime_now }} - Direction Hôtel Le Prestige</p>
+            <button class="no-print btn-print" onclick="window.print()" style="margin-top: 10px;">🖨 IMPRIMER LE RAPPORT (A4)</button>
+        </div>
+    </div>
+</body>
+</html>

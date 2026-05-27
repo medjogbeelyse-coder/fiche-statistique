@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réception - Hôtel Le Prestige</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&amp;family=Montserrat:wght@200;400;600&amp;display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;           /* Bleu-gris foncé */
+            --accent: #c5a059;            /* Doré */
+            --bg: #f8f5f0;                /* Beige clair */
+            --text: #2c3e50;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .main-viewport {
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
+        }
+
+        .hotel-brand h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.8rem;
+            letter-spacing: 10px;
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .hotel-brand p {
+            font-weight: 300;
+            letter-spacing: 4px;
+            font-size: 1rem;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .cards-flex {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 60px;
+            flex-wrap: wrap;
+        }
+
+        .key-card {
+            width: 300px;
+            background: var(--card-bg);
+            border: 1px solid #e0d9cc;
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--text);
+            padding: 40px 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .key-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+            border-color: var(--accent);
+        }
+
+        .card-number {
+            font-family: 'Cinzel', serif;
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+        }
+
+        .card-main-content .icon {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .card-main-content h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 1.6rem;
+            margin: 0 0 12px 0;
+        }
+
+        .card-main-content p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .card-footer {
+            margin-top: 30px;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #999;
+        }
+
+        .admin-footer {
+            margin-top: 70px;
+        }
+
+        .admin-link {
+            text-decoration: none;
+            color: var(--primary);
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            padding: 14px 35px;
+            border: 1px solid #ddd;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-link:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        @media (max-width: 700px) {
+            .cards-flex {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-viewport">
+        <header class="hotel-brand">
+            <h1>Le Prestige</h1>
+            <p>Espace Gérance — {{ session['prenom_gerant'] }} {{ session['nom_gerant'] }}</p>
+        </header>
+
+        <div class="cards-flex">
+            <a href="{{ url_for('fiche') }}" class="key-card">
+                <div class="card-number">SUITE 01</div>
+                <div class="card-main-content">
+                    <span class="icon">🖋️</span>
+                    <h2>Enregistrement</h2>
+                    <p>Formalités d'arrivée et création des fiches de police pour les nouveaux résidents.</p>
+                </div>
+                <div class="card-footer">Accès Membre</div>
+            </a>
+
+            <a href="{{ url_for('pdfs') }}" class="key-card">
+                <div class="card-number">SUITE 02</div>
+                <div class="card-main-content">
+                    <span class="icon">📜</span>
+                    <h2>Archives</h2>
+                    <p>Consultation sécurisée de l'historique des séjours et des registres numériques.</p>
+                </div>
+                <div class="card-footer">Accès Membre</div>
+            </a>
+        </div>
+
+        <footer class="admin-footer">
+            <a href="{{ url_for('stats') }}" class="admin-link">
+                ⚙️ Administration Système
+            </a>
+        </footer>
+    </div>
+</body>
+</html>

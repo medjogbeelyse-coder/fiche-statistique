@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archives PDF - Hôtel Le Prestige</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            /* FOND DEEP PROFESSIONAL */
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            background-attachment: fixed;
+            color: #f8fafc;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- EFFET SCANNER LASER (3 SECONDES) --- */
+        .scanner-line {
+            position: fixed;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #38bdf8;
+            box-shadow: 0 0 20px 5px rgba(56, 189, 248, 0.8), 0 0 40px 10px rgba(56, 189, 248, 0.4);
+            z-index: 9999;
+            pointer-events: none;
+            animation: scanMove 3s ease-in-out forwards;
+        }
+
+        @keyframes scanMove {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        /* --- NAVIGATION & TITRE --- */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: #38bdf8;
+            font-weight: bold;
+            font-size: 0.9rem;
+            background: rgba(56, 189, 248, 0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover {
+            background: #38bdf8;
+            color: white;
+        }
+
+        /* --- BARRE DE RECHERCHE --- */
+        .search-container {
+            margin-bottom: 30px;
+        }
+
+        #search {
+            width: 100%;
+            padding: 15px 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+        }
+
+        #search:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+
+        /* --- LISTE DES CLIENTS --- */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #ffffff; /* Cartes blanches pour le contraste */
+            color: #1e293b;
+            margin-bottom: 15px;
+            padding: 20px 25px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        li:hover {
+            transform: scale(1.02);
+        }
+
+        .info-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .date-badge {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .client-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .view-link {
+            text-decoration: none;
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .view-link:hover {
+            background: #38bdf8;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="scanner-line"></div>
+
+    <div class="container">
+        
+        <div class="header-section">
+            <h1>Archives PDF</h1>
+            <a href="{{ url_for('gerant') }}" class="btn-back">⬅ Dashboard</a>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="search" placeholder="Rechercher un nom, un prénom ou une date..." onkeyup="filtrerClients()">
+        </div>
+
+        <ul id="liste-clients">
+            {% for client in clients %}
+            <li>
+                <div class="info-group">
+                    <span class="date-badge">📅 {{ client.date }}</span>
+                    <span class="client-name">{{ client.nom }} {{ client.prenom }}</span>
+                </div>
+                <a href="{{ client.pdf_url }}" target="_blank" class="view-link">
+                    📄 Voir le PDF
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+
+    </div>
+
+    <script>
+        function filtrerClients() {
+            let input = document.getElementById("search").value.toLowerCase();
+            let items = document.querySelectorAll("#liste-clients li");
+            
+            items.forEach(function(item) {
+                // On récupère tout le texte de la carte pour la recherche
+                let text = item.textContent.toLowerCase();
+                
+                if (text.includes(input)) {
+                    item.style.display = "flex";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
