@@ -11,98 +11,84 @@
             --sand-bg: #e8e2d6;
             --text-ebony: #2c2c2c;
         }
-
-        body { 
-            font-family: 'Montserrat', sans-serif; 
+        body {
+            font-family: 'Montserrat', sans-serif;
             background-color: var(--sand-bg);
             background-image: url("https://www.transparenttextures.com/patterns/felt.png");
-            color: var(--text-ebony); 
-            margin: 0; 
-            padding: 40px 20px; 
-            min-height: 100vh; 
+            color: var(--text-ebony);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
         }
-
         .container { max-width: 900px; margin: auto; }
-
-        .header-section { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid var(--prestige-gold); 
-            padding-bottom: 20px; 
-            margin-bottom: 30px; 
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--prestige-gold);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
         }
-
         h1 { font-family: 'Cinzel', serif; letter-spacing: 3px; margin: 0; font-size: 1.8rem; }
-
-        #search { 
-            width: 100%; 
-            padding: 15px; 
-            border-radius: 4px; 
-            border: 1px solid rgba(197, 160, 89, 0.4); 
-            background: var(--paper-ivory); 
-            color: var(--text-ebony); 
-            margin-bottom: 25px; 
+        #search {
+            width: 100%;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid rgba(197, 160, 89, 0.4);
+            background: var(--paper-ivory);
+            color: var(--text-ebony);
+            margin-bottom: 25px;
             box-sizing: border-box;
             font-family: 'Montserrat', sans-serif;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
-
         #search:focus { outline: none; border-color: var(--prestige-gold); }
-
         ul { list-style: none; padding: 0; }
-
-        li { 
-            background: var(--paper-ivory); 
-            margin-bottom: 15px; 
-            padding: 20px; 
-            border-radius: 2px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
+        li {
+            background: var(--paper-ivory);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border-left: 5px solid var(--prestige-gold);
             transition: transform 0.2s;
         }
-
         li:hover { transform: translateX(5px); }
-
         .info-main { display: flex; flex-direction: column; gap: 4px; }
         .client-name { font-size: 1.2rem; font-weight: 700; text-transform: uppercase; color: var(--text-ebony); }
         .client-sub { font-size: 0.85rem; color: #666; font-weight: 500; }
         .badge-chambre { background: var(--text-ebony); color: var(--paper-ivory); padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; font-weight: 700; margin-left: 10px; }
-
         .btn-group { display: flex; gap: 12px; align-items: center; }
-        
-        .view-link { 
-            text-decoration: none; 
-            background: var(--text-ebony); 
-            color: var(--paper-ivory); 
-            padding: 12px 20px; 
-            border-radius: 4px; 
-            font-weight: bold; 
+        .view-link {
+            text-decoration: none;
+            background: var(--text-ebony);
+            color: var(--paper-ivory);
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-weight: bold;
             font-family: 'Cinzel', serif;
             font-size: 0.8rem;
             letter-spacing: 1px;
             transition: 0.3s;
         }
-
         .view-link:hover { background: var(--prestige-gold); }
-
-        .btn-delete { 
-            background: #fee2e2; 
-            color: #ef4444; 
-            padding: 12px; 
-            border-radius: 4px; 
-            cursor: pointer; 
+        .btn-delete {
+            background: #fee2e2;
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
             border: 1px solid #fecaca;
             transition: 0.3s;
+            font-size: 1rem;
         }
-
         .btn-delete:hover { background: #f87171; color: white; }
-
         .btn-back { text-decoration: none; color: var(--text-ebony); font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
         .btn-back:hover { color: var(--prestige-gold); }
+        .form-delete { margin: 0; }
     </style>
 </head>
 <body>
@@ -111,9 +97,9 @@
             <h1>Archives PDF</h1>
             <a href="{{ url_for('dashboard') }}" class="btn-back">⬅ Dashboard</a>
         </div>
-        
+
         <input type="text" id="search" placeholder="Rechercher un nom, une chambre ou une provenance..." onkeyup="filtrer()">
-        
+
         <ul id="liste-clients">
             {% for client in clients %}
             <li>
@@ -127,7 +113,15 @@
                 </div>
                 <div class="btn-group">
                     <a href="{{ client.pdf_url }}" target="_blank" class="view-link">📄 Ouvrir le PDF</a>
-                    <button class="btn-delete" onclick="demanderCode('{{ client.id }}')" title="Supprimer le dossier">🗑️</button>
+
+                    <!-- Suppression en POST + jeton CSRF -->
+                    <form method="post"
+                          action="{{ url_for('supprimer_pdf', id=client.id) }}"
+                          class="form-delete"
+                          onsubmit="return confirmerSuppression(this);">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn-delete" title="Supprimer le dossier">🗑️</button>
+                    </form>
                 </div>
             </li>
             {% endfor %}
@@ -135,22 +129,25 @@
     </div>
 
     <script>
-        function demanderCode(clientId) {
-            if (confirm("⚠️ Attention : La suppression est définitive. Voulez-vous continuer ?")) {
-                let mdp = prompt("Veuillez entrer le code de sécurité pour confirmer la suppression :");
-                // Le code de sécurité configuré
-                if (mdp === "Pension@2025") {
-                    window.location.href = "/supprimer_pdf/" + clientId;
-                } else if (mdp !== null) { 
-                    alert("Code incorrect ! Accès refusé."); 
-                }
+        function confirmerSuppression(form) {
+            if (!confirm("⚠️ Attention : La suppression est définitive. Voulez-vous continuer ?")) {
+                return false;
             }
+            let mdp = prompt("Veuillez entrer le code de sécurité pour confirmer la suppression :");
+            if (mdp === null) {
+                return false; // l'utilisateur a annulé
+            }
+            // Le code de sécurité configuré
+            if (mdp === "Pension@2025") {
+                return true;  // le formulaire est envoyé (POST + CSRF)
+            }
+            alert("Code incorrect ! Accès refusé.");
+            return false;
         }
 
         function filtrer() {
             let val = document.getElementById("search").value.toLowerCase();
             document.querySelectorAll("#liste-clients li").forEach(li => {
-                // Recherche sur tout le texte du li (nom, provenance, chambre)
                 li.style.display = li.textContent.toLowerCase().includes(val) ? "flex" : "none";
             });
         }

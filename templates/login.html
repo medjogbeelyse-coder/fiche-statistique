@@ -2,90 +2,755 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion Gérant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archives PDF - Hôtel Le Prestige</title>
+
+    <!-- Idéalement : auto-héberger les polices en production -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --prestige-gold: #a8843f;
+            --prestige-gold-dark: #8d6f33;
+            --paper-ivory: #fdfaf1;
+            --sand-bg: #e8e2d6;
+            --sand-border: #d6cbb7;
+            --text-ebony: #1f1f1f;
+            --text-soft: #5f5a52;
+            --danger: #b42318;
+            --danger-bg: #fef3f2;
+            --danger-border: #fecdca;
+            --success-bg: #f6fef9;
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --shadow-focus: 0 0 0 3px rgba(168, 132, 63, 0.25);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #7ed6df, #48dbfb);
             margin: 0;
-            padding: 0;
+            min-height: 100vh;
+            font-family: "Montserrat", sans-serif;
+            background-color: var(--sand-bg);
+            background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+            color: var(--text-ebony);
+            line-height: 1.5;
+            padding: 40px 20px;
+        }
+
+        img,
+        svg {
+            max-width: 100%;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .sr-only {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            padding: 0 !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            clip: rect(0, 0, 0, 0) !important;
+            white-space: nowrap !important;
+            border: 0 !important;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .page-shell {
+            background: rgba(253, 250, 241, 0.58);
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(168, 132, 63, 0.14);
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 12px;
+            top: 12px;
+            background: var(--text-ebony);
+            color: var(--paper-ivory);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transform: translateY(-150%);
+            transition: transform 0.2s ease;
+            z-index: 1000;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        .header-section {
             display: flex;
-            justify-content: center;
+            gap: var(--space-4);
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--prestige-gold);
+            padding-bottom: 20px;
+            margin-bottom: 24px;
+        }
+
+        .header-copy {
+            max-width: 650px;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--prestige-gold-dark);
+            margin-bottom: var(--space-2);
+        }
+
+        h1 {
+            margin: 0;
+            font-family: "Cinzel", serif;
+            letter-spacing: 0.08em;
+            font-size: clamp(1.6rem, 2vw, 2rem);
+            line-height: 1.2;
+        }
+
+        .page-description {
+            margin: 10px 0 0;
+            color: var(--text-soft);
+            max-width: 58ch;
+        }
+
+        .btn-back {
+            display: inline-flex;
             align-items: center;
-            height: 100vh;
+            gap: 0.5rem;
+            text-decoration: none;
+            color: var(--text-ebony);
+            font-weight: 700;
+            font-size: 0.92rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border: 1px solid var(--sand-border);
+            background: var(--paper-ivory);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            white-space: nowrap;
         }
 
-        .login {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 60px 50px;
-            border-radius: 25px;
-            box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.3);
-            width: 400px;
-            text-align: center;
-        }
-
-        .login h1 {
-            color: #0c2461;
-            margin-bottom: 40px;
-            font-size: 2em;
-            font-weight: 800;
-        }
-
-        .login input {
-            width: 100%;
-            padding: 15px 10px;
-            margin: 10px 0;
-            border-radius: 12px;
-            border: 1px solid #ccc;
-            font-size: 1em;
-        }
-
-        .login input:focus {
-            outline: none;
-            border-color: #0c2461;
-            box-shadow: 0 0 5px rgba(12, 36, 97, 0.5);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px 0;
-            margin-top: 20px;
-            font-size: 1.2em;
-            color: white;
-            background-color: #0c2461;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0px 7px 20px rgba(0,0,0,0.3);
-        }
-
-        .btn:hover {
-            background-color: #1e3799;
-            transform: scale(1.05);
-        }
-
-        .erreur {
-            color: red;
-            font-weight: 600;
+        .toolbar {
+            display: grid;
+            gap: var(--space-3);
             margin-bottom: 20px;
+        }
+
+        .search-group {
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .search-label {
+            font-weight: 700;
+        }
+
+        .search-help {
+            color: var(--text-soft);
+            font-size: 0.92rem;
+        }
+
+        .search-input-wrap {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-soft);
+            pointer-events: none;
+        }
+
+        #search {
+            width: 100%;
+            min-height: 52px;
+            padding: 14px 16px 14px 44px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(168, 132, 63, 0.35);
+            background: var(--paper-ivory);
+            color: var(--text-ebony);
+            font: inherit;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        #search::placeholder {
+            color: #7a756d;
+        }
+
+        #search:focus,
+        .btn-back:focus-visible,
+        .view-link:focus-visible,
+        .btn-delete:focus-visible,
+        .dialog-btn:focus-visible,
+        .dialog-cancel:focus-visible {
+            outline: none;
+            box-shadow: var(--shadow-focus);
+        }
+
+        .results-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .results-count {
+            font-size: 0.95rem;
+            color: var(--text-soft);
+        }
+
+        .archives-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 16px;
+        }
+
+        .archive-item {
+            background: var(--paper-ivory);
+            border-radius: 12px;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            align-items: center;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(168, 132, 63, 0.14);
+            border-left: 6px solid var(--prestige-gold);
+        }
+
+        .archive-item[hidden] {
+            display: none !important;
+        }
+
+        .info-main {
+            display: grid;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .record-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--prestige-gold-dark);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .identity-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .client-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-ebony);
+            word-break: break-word;
+        }
+
+        .badge-chambre {
+            display: inline-flex;
+            align-items: center;
+            background: var(--text-ebony);
+            color: var(--paper-ivory);
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .meta-row {
+            color: var(--text-soft);
+            font-size: 0.95rem;
+        }
+
+        .meta-row strong {
+            color: var(--text-ebony);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .view-link,
+        .btn-delete,
+        .dialog-btn,
+        .dialog-cancel {
+            min-height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            font-weight: 700;
+            font: inherit;
+            cursor: pointer;
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .view-link {
+            text-decoration: none;
+            background: var(--text-ebony);
+            color: var(--paper-ivory);
+            padding: 12px 18px;
+            border: 1px solid var(--text-ebony);
+        }
+
+        .view-link:hover {
+            background: var(--prestige-gold-dark);
+            border-color: var(--prestige-gold-dark);
+        }
+
+        .btn-delete {
+            background: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+            padding: 12px 14px;
+        }
+
+        .btn-delete:hover {
+            background: #fdd8d2;
+        }
+
+        .empty-state {
+            margin-top: 18px;
+            padding: 22px;
+            border-radius: 12px;
+            background: var(--success-bg);
+            border: 1px dashed rgba(168, 132, 63, 0.35);
+            color: var(--text-soft);
+        }
+
+        .empty-state[hidden] {
+            display: none;
+        }
+
+        dialog {
+            width: min(92vw, 520px);
+            border: 0;
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+        }
+
+        dialog::backdrop {
+            background: rgba(20, 20, 20, 0.55);
+        }
+
+        .dialog-card {
+            background: var(--paper-ivory);
+            color: var(--text-ebony);
+            padding: 24px;
+        }
+
+        .dialog-title {
+            margin: 0 0 8px;
+            font-family: "Cinzel", serif;
+            font-size: 1.2rem;
+            letter-spacing: 0.04em;
+        }
+
+        .dialog-text {
+            margin: 0 0 18px;
+            color: var(--text-soft);
+        }
+
+        .dialog-warning {
+            margin: 0 0 18px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .dialog-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .dialog-cancel {
+            background: transparent;
+            border: 1px solid var(--sand-border);
+            color: var(--text-ebony);
+            padding: 12px 16px;
+        }
+
+        .dialog-btn {
+            background: var(--danger);
+            border: 1px solid var(--danger);
+            color: white;
+            padding: 12px 16px;
+        }
+
+        .dialog-btn:hover {
+            background: #912018;
+            border-color: #912018;
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 20px 14px;
+            }
+
+            .page-shell {
+                padding: 18px;
+            }
+
+            .header-section,
+            .archive-item {
+                grid-template-columns: 1fr;
+            }
+
+            .header-section {
+                align-items: stretch;
+            }
+
+            .btn-group {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login">
-        <h1>Connexion Gérant</h1>
+    <a href="#contenu-principal" class="skip-link">Aller au contenu principal</a>
 
-        {% if erreur %}
-        <p class="erreur">{{ erreur }}</p>
-        {% endif %}
+    <div class="container">
+        <div class="page-shell">
+            <header class="header-section" aria-labelledby="page-title">
+                <div class="header-copy">
+                    <span class="eyebrow">Administration</span>
+                    <h1 id="page-title">Archives PDF</h1>
+                    <p class="page-description">
+                        Consultez les dossiers archivés, recherchez rapidement un client, puis ouvrez ou supprimez un document selon vos droits.
+                    </p>
+                </div>
 
-        <form method="post" action="{{ url_for('gerant') }}">
-            <input type="text" name="nom" placeholder="Nom" required>
-            <input type="text" name="prenom" placeholder="Prénom" required>
-            <input type="password" name="mot_de_passe" placeholder="Mot de passe" required>
-            <button type="submit" class="btn">Se connecter</button>
-        </form>
+                <a href="{{ url_for('dashboard') }}" class="btn-back">
+                    <span aria-hidden="true">⬅</span>
+                    <span>Dashboard</span>
+                </a>
+            </header>
+
+            <main id="contenu-principal">
+                <section class="toolbar" aria-labelledby="search-title">
+                    <h2 id="search-title" class="sr-only">Recherche dans les archives</h2>
+
+                    <div class="search-group">
+                        <label for="search" class="search-label">Rechercher une archive</label>
+                        <p id="search-help" class="search-help">
+                            Recherche par nom, prénom, chambre, provenance ou téléphone.
+                        </p>
+
+                        <div class="search-input-wrap">
+                            <span class="search-icon" aria-hidden="true">🔎</span>
+                            <input
+                                type="search"
+                                id="search"
+                                name="search"
+                                placeholder="Ex. Dupont, chambre 204, Lyon…"
+                                autocomplete="off"
+                                spellcheck="false"
+                                aria-describedby="search-help results-count"
+                                inputmode="search"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="results-bar">
+                        <p id="results-count" class="results-count" aria-live="polite">
+                            Chargement de la liste…
+                        </p>
+                    </div>
+                </section>
+
+                <section aria-labelledby="archives-title">
+                    <h2 id="archives-title" class="sr-only">Liste des archives</h2>
+
+                    <ul id="liste-clients" class="archives-list">
+                        {% for client in clients %}
+                            {% set nom_complet = ((client.nom or '') ~ ' ' ~ (client.prenom or ''))|trim %}
+                            {% set provenance = client.provenance|default('N/A', true) %}
+                            {% set telephone = client.telephone|default('N/A', true) %}
+                            {% set chambre = client.chambre_num if client.chambre_num is not none else 'N/A' %}
+                            {% set searchable = (nom_complet ~ ' ' ~ chambre ~ ' ' ~ provenance ~ ' ' ~ telephone)|trim %}
+
+                            <li
+                                class="archive-item"
+                                data-search="{{ searchable|e }}"
+                            >
+                                <div class="info-main">
+                                    <p class="record-date">
+                                        <span aria-hidden="true">📅</span>
+                                        {% if client.date_creation %}
+                                            <time datetime="{{ client.date_creation.isoformat() }}">
+                                                Enregistré le {{ client.date_creation.strftime('%d/%m/%Y') }}
+                                            </time>
+                                        {% else %}
+                                            <span>Date d’enregistrement non disponible</span>
+                                        {% endif %}
+                                    </p>
+
+                                    <div class="identity-row">
+                                        <span class="client-name">
+                                            {{ nom_complet if nom_complet else 'Client non renseigné' }}
+                                        </span>
+                                        <span class="badge-chambre">
+                                            Chambre {{ chambre }}
+                                        </span>
+                                    </div>
+
+                                    <p class="meta-row">
+                                        <span aria-hidden="true">🌍</span>
+                                        Provenance :
+                                        <strong>{{ provenance }}</strong>
+                                        <span aria-hidden="true"> | </span>
+                                        <span class="sr-only"> — </span>
+                                        <span aria-hidden="true">📞</span>
+                                        Téléphone :
+                                        <strong>{{ telephone }}</strong>
+                                    </p>
+                                </div>
+
+                                <div class="btn-group">
+                                    {# Recommandé : servir le PDF via une route backend sécurisée #}
+                                    <a
+                                        href="{{ url_for('ouvrir_pdf', id=client.id) }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="view-link"
+                                    >
+                                        <span aria-hidden="true">📄</span>
+                                        <span>Ouvrir le PDF</span>
+                                        <span class="sr-only"> de {{ nom_complet if nom_complet else 'ce client' }} dans un nouvel onglet</span>
+                                    </a>
+
+                                    <form
+                                        method="post"
+                                        action="{{ url_for('supprimer_pdf', id=client.id) }}"
+                                        class="form-delete"
+                                        data-delete-form
+                                        data-client-name="{{ nom_complet|e if nom_complet else 'ce dossier' }}"
+                                    >
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button
+                                            type="submit"
+                                            class="btn-delete"
+                                            aria-label="Supprimer le dossier de {{ nom_complet if nom_complet else 'ce client' }}"
+                                        >
+                                            <span aria-hidden="true">🗑️</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="empty-state">
+                                Aucune archive PDF n’est disponible pour le moment.
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div id="no-results" class="empty-state" hidden>
+                        Aucun résultat ne correspond à votre recherche.
+                    </div>
+                </section>
+            </main>
+        </div>
     </div>
+
+    <dialog id="delete-dialog" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-text delete-dialog-warning">
+        <div class="dialog-card">
+            <h2 id="delete-dialog-title" class="dialog-title">Confirmer la suppression</h2>
+            <p id="delete-dialog-text" class="dialog-text">
+                Vous êtes sur le point de supprimer <strong id="dialog-client-name">ce dossier</strong>.
+            </p>
+            <p id="delete-dialog-warning" class="dialog-warning">
+                Cette action est définitive. La sécurité réelle doit être vérifiée côté serveur.
+            </p>
+
+            <div class="dialog-actions">
+                <button type="button" class="dialog-cancel" id="cancel-delete">
+                    Annuler
+                </button>
+                <button type="button" class="dialog-btn" id="confirm-delete">
+                    Supprimer définitivement
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <script>
+        (() => {
+            "use strict";
+
+            const searchInput = document.getElementById("search");
+            const items = Array.from(document.querySelectorAll(".archive-item"));
+            const resultsCount = document.getElementById("results-count");
+            const noResults = document.getElementById("no-results");
+
+            const deleteDialog = document.getElementById("delete-dialog");
+            const cancelDeleteBtn = document.getElementById("cancel-delete");
+            const confirmDeleteBtn = document.getElementById("confirm-delete");
+            const dialogClientName = document.getElementById("dialog-client-name");
+
+            let pendingDeleteForm = null;
+
+            const normalizeText = (value) => {
+                return (value || "")
+                    .toString()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase()
+                    .trim();
+            };
+
+            const updateResultsCount = () => {
+                const visibleCount = items.filter(item => !item.hidden).length;
+
+                if (items.length === 0) {
+                    resultsCount.textContent = "Aucune archive disponible.";
+                    noResults.hidden = true;
+                    return;
+                }
+
+                if (visibleCount === 0) {
+                    resultsCount.textContent = "0 archive affichée.";
+                    noResults.hidden = false;
+                    return;
+                }
+
+                noResults.hidden = true;
+                resultsCount.textContent =
+                    visibleCount > 1
+                        ? `${visibleCount} archives affichées.`
+                        : "1 archive affichée.";
+            };
+
+            const filterItems = () => {
+                const query = normalizeText(searchInput.value);
+
+                items.forEach((item) => {
+                    const haystack = normalizeText(item.dataset.search);
+                    item.hidden = query !== "" && !haystack.includes(query);
+                });
+
+                updateResultsCount();
+            };
+
+            const openDeleteDialog = (form) => {
+                pendingDeleteForm = form;
+                const clientName = form.dataset.clientName || "ce dossier";
+                dialogClientName.textContent = clientName;
+
+                if (typeof deleteDialog.showModal === "function") {
+                    deleteDialog.showModal();
+                    cancelDeleteBtn.focus();
+                } else {
+                    const confirmed = window.confirm(
+                        `Suppression définitive de ${clientName}. Continuer ?`
+                    );
+                    if (confirmed) {
+                        form.submit();
+                    }
+                }
+            };
+
+            document.querySelectorAll("[data-delete-form]").forEach((form) => {
+                form.addEventListener("submit", (event) => {
+                    event.preventDefault();
+                    openDeleteDialog(form);
+                });
+            });
+
+            confirmDeleteBtn?.addEventListener("click", () => {
+                if (pendingDeleteForm) {
+                    const formToSubmit = pendingDeleteForm;
+                    pendingDeleteForm = null;
+                    deleteDialog.close();
+                    formToSubmit.submit();
+                }
+            });
+
+            cancelDeleteBtn?.addEventListener("click", () => {
+                pendingDeleteForm = null;
+                deleteDialog.close();
+            });
+
+            deleteDialog?.addEventListener("cancel", () => {
+                pendingDeleteForm = null;
+            });
+
+            searchInput?.addEventListener("input", filterItems);
+
+            filterItems();
+        })();
+    </script>
 </body>
 </html>
