@@ -179,8 +179,12 @@ def calculer_stats_logique(mois, annee):
         if not f.date_arrivee or not f.date_depart: continue
         
         # Décompte clients début/fin de mois
-        if f.date_arrivee <= debut_mois + timedelta(days=19): c_debut += 1
-        if f.date_depart >= debut_mois + timedelta(days=21): c_fin += 1
+                # Décompte précis basé sur la date d'arrivée du client
+        if f.date_arrivee <= debut_mois + timedelta(days=19):
+            c_debut += 1
+        else:
+            c_fin += 1
+
         
         # Calcul des nuitées réelles de CE client dans CE mois
         d_eff = max(f.date_arrivee, debut_mois)
