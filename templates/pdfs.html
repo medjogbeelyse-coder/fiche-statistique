@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Archives PDF - Hôtel Le Prestige</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://googleapis.com" rel="stylesheet">
     <style>
         :root {
             --prestige-gold: #c5a059;
@@ -14,12 +14,47 @@
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: var(--sand-bg);
-            background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+            background-image: url("https://transparenttextures.com");
             color: var(--text-ebony);
             margin: 0;
             padding: 40px 20px;
             min-height: 100vh;
         }
+
+        /* ======================================= */
+        /*   ÉCRAN DE CHARGEMENT ULTRA-FLUIDE     */
+        /* ======================================= */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #2c3e50;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(197, 160, 89, 0.2);
+            border-top: 3px solid var(--prestige-gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loader-text {
+            font-family: 'Cinzel', serif;
+            color: var(--prestige-gold);
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+        }
+
+        /* Conteneur principal */
         .container { max-width: 900px; margin: auto; }
         .header-section {
             display: flex;
@@ -92,6 +127,13 @@
     </style>
 </head>
 <body>
+
+    <!-- Écran de Chargement Fluide -->
+    <div id="loading-screen">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Chargement des Archives...</div>
+    </div>
+
     <div class="container">
         <div class="header-section">
             <h1>Archives PDF</h1>
@@ -114,7 +156,7 @@
                 <div class="btn-group">
                     <a href="{{ client.pdf_url }}" target="_blank" class="view-link">📄 Ouvrir le PDF</a>
 
-                    <!-- Suppression en POST + jeton CSRF -->
+                    <!-- Suppression en POST -->
                     <form method="post"
                           action="{{ url_for('supprimer_pdf', id=client.id) }}"
                           class="form-delete"
@@ -129,26 +171,42 @@
     </div>
 
     <script>
+        // Le rideau s'efface dès que la page a fini de charger les éléments
+        window.addEventListener('load', () => {
+            const screen = document.getElementById('loading-screen');
+            if (screen) {
+                screen.style.opacity = '0';
+                setTimeout(() => {
+                    screen.style.display = 'none';
+                }, 400);
+            }
+        });
+
         function confirmerSuppression(form) {
             if (!confirm("⚠️ Attention : La suppression est définitive. Voulez-vous continuer ?")) {
                 return false;
             }
             let mdp = prompt("Veuillez entrer le code de sécurité pour confirmer la suppression :");
             if (mdp === null) {
-                return false; // l'utilisateur a annulé
+                return false; 
             }
-            // Le code de sécurité configuré
+            // RETOUR AU CODE D'ORIGINE ICI
             if (mdp === "Pension@2025") {
-                return true;  // le formulaire est envoyé (POST + CSRF)
+                return true; 
             }
             alert("Code incorrect ! Accès refusé.");
             return false;
         }
 
         function filtrer() {
-            let val = document.getElementById("search").value.toLowerCase();
-            document.querySelectorAll("#liste-clients li").forEach(li => {
-                li.style.display = li.textContent.toLowerCase().includes(val) ? "flex" : "none";
+            let val = document.getElementById("search").value.toLowerCase().trim();
+            let items = document.querySelectorAll("#liste-clients li");
+            
+            requestAnimationFrame(() => {
+                items.forEach(li => {
+                    let texte = li.textContent.toLowerCase();
+                    li.style.display = texte.includes(val) ? "flex" : "none";
+                });
             });
         }
     </script>
