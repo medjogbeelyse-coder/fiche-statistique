@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Archives PDF - Hôtel Le Prestige</title>
+    <!-- Lien vers les polices Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --prestige-gold: #c5a059;
+            --paper-ivory: #fdfaf1;
+            --sand-bg: #e8e2d6;
+            --text-ebony: #2c2c2c;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sand-bg);
+            background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+            color: var(--text-ebony);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        /* ÉCRAN DE CHARGEMENT */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #2c3e50;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(197, 160, 89, 0.2);
+            border-top: 3px solid var(--prestige-gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 15px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { font-family: 'Cinzel', serif; color: var(--prestige-gold); font-size: 0.9rem; letter-spacing: 3px; }
+
+        /* CONTENEUR PRINCIPAL */
+        .container { max-width: 900px; margin: auto; }
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--prestige-gold);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 { font-family: 'Cinzel', serif; letter-spacing: 3px; margin: 0; font-size: 1.8rem; }
+        #search {
+            width: 100%;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid rgba(197, 160, 89, 0.4);
+            background: var(--paper-ivory);
+            margin-bottom: 25px;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+        #search:focus { outline: none; border-color: var(--prestige-gold); }
+        ul { list-style: none; padding: 0; }
+        li {
+            background: var(--paper-ivory);
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--prestige-gold);
+            transition: transform 0.2s;
+        }
+        li:hover { transform: translateX(5px); }
+        .info-main { display: flex; flex-direction: column; gap: 4px; }
+        .client-name { font-size: 1.2rem; font-weight: 700; text-transform: uppercase; }
+        .client-sub { font-size: 0.85rem; color: #666; font-weight: 500; }
+        .badge-chambre { background: var(--text-ebony); color: var(--paper-ivory); padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; margin-left: 10px; }
+        .btn-group { display: flex; gap: 12px; align-items: center; }
+        .view-link { text-decoration: none; background: var(--text-ebony); color: var(--paper-ivory); padding: 12px 20px; border-radius: 4px; font-family: 'Cinzel', serif; font-size: 0.8rem; transition: 0.3s; }
+        .view-link:hover { background: var(--prestige-gold); }
+        .btn-delete { background: #fee2e2; color: #ef4444; padding: 12px; border-radius: 4px; cursor: pointer; border: 1px solid #fecaca; }
+        .btn-delete:hover { background: #f87171; color: white; }
+        .btn-back { text-decoration: none; color: var(--text-ebony); font-weight: 700; }
+
+        /* Messages flash (mot de passe incorrect, etc.) */
+        .flash-msg {
+            padding: 14px 18px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .flash-danger { background: #fee2e2; color: #b91c1c; border-left: 5px solid #ef4444; }
+        .flash-info { background: #dcfce7; color: #166534; border-left: 5px solid #22c55e; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Chargement des Archives...</div>
+    </div>
+
+    <div class="container">
+        <div class="header-section">
+            <h1>Archives PDF</h1>
+            <a href="{{ url_for('dashboard') }}" class="btn-back">⬅ Dashboard</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <input type="text" id="search" placeholder="Rechercher un nom, une chambre ou une provenance..." onkeyup="filtrer()">
+
+        <ul id="liste-clients">
+            {% for client in clients %}
+            <li>
+                <div class="info-main">
+                    <span style="font-size:0.75rem; color:var(--prestige-gold); font-weight:700;">📅 ENREGISTRÉ LE {{ client.date_creation.strftime('%d/%m/%Y') }}</span>
+                    <div>
+                        <span class="client-name">{{ client.nom }} {{ client.prenom }}</span>
+                        <span class="badge-chambre">Ch. {{ client.chambre_num }}</span>
+                    </div>
+                    <span class="client-sub">🌍 Provenance : <strong>{{ client.provenance or 'N/A' }}</strong> | 📞 {{ client.telephone or 'N/A' }}</span>
+                </div>
+                <div class="btn-group">
+                    <a href="{{ client.pdf_url }}" target="_blank" class="view-link">📄 Ouvrir le PDF</a>
+                    <form method="post" action="{{ url_for('supprimer_pdf', id=client.id) }}" onsubmit="return confirmerSuppression(this);">
+                        <input type="hidden" name="mot_de_passe">
+                        <button type="submit" class="btn-delete" title="Supprimer le dossier">🗑️</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const screen = document.getElementById('loading-screen');
+            if (screen) {
+                screen.style.opacity = '0';
+                setTimeout(() => { screen.style.display = 'none'; }, 400);
+            }
+        });
+
+        function filtrer() {
+            let val = document.getElementById("search").value.toLowerCase().trim();
+            let items = document.querySelectorAll("#liste-clients li");
+            items.forEach(li => {
+                let texte = li.textContent.toLowerCase();
+                li.style.display = texte.includes(val) ? "flex" : "none";
+            });
+        }
+
+        function confirmerSuppression(form) {
+            const pwd = prompt("Mot de passe pour confirmer la suppression :");
+            if (pwd === null || pwd.trim() === "") return false;
+            form.querySelector('input[name="mot_de_passe"]').value = pwd;
+            return true;
+        }
+    </script>
+</body>
+</html>

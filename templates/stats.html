@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport & Relevé des Mouvements - {{ stats.mois_nom }} {{ stats.annee }}</title>
+    <style>
+        /* ============================================================ */
+        /* STYLES GÉNÉRAUX                                              */
+        /* ============================================================ */
+        * { box-sizing: border-box !important; }
+
+        body { 
+            font-family: Arial, sans-serif; 
+            color: #000; 
+            background-color: #eef2f5; 
+            margin: 0; 
+            padding: 15px; 
+            font-size: 11px;
+            overflow-x: hidden;
+        }
+        
+        .main-container {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+        }
+
+        /* Barre globale de navigation */
+        .no-print-bar {
+            background: #ffffff;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #dcdfe6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* En-tête individuel avec bouton pour chaque page */
+        .page-action-header {
+            background: #2c3e50;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px 4px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+        }
+
+        .btn-print-single {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .btn-print-single:hover { background: #219150; }
+
+        /* Conteneurs de pages sur écran */
+        .section-page {
+            background: white;
+            margin-bottom: 30px;
+            border-radius: 6px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .bloc-management {
+            padding: 25px 35px;
+        }
+        
+        .bloc-management h1 { font-size: 20px; color: #2c3e50; text-align: center; margin: 0; border-bottom: 2px solid #2c3e50; }
+        .bloc-management h2 { font-size: 16px; color: #2c3e50; text-align: center; margin: 5px 0; }
+        .bloc-management h3 { font-size: 13px; color: #2980b9; border-left: 4px solid #2980b9; padding-left: 8px; margin: 15px 0 8px 0; background: #f9f9f9; }
+        
+        .bloc-management table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px; }
+        .bloc-management th, .bloc-management td { border: 1px solid #d0d7de; padding: 6px 10px; text-align: left; }
+        .bloc-management th { background-color: #4a6278; color: white; font-weight: bold; }
+        .highlight { font-weight: bold; color: #d35400; }
+
+        /* Styles Fiches Ministère */
+        .container-fiche {
+            width: 100%;
+            max-width: 245mm;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .header-bandeau {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+        }
+        
+        .ministere-titre {
+            font-weight: bold;
+            font-size: 11px;
+            text-transform: uppercase;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .champs-hotel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            justify-content: flex-end;
+            flex: 0 0 auto;
+            max-width: 55%;
+        }
+
+        .champ-box {
+            border: 1px solid #000;
+            padding: 2px 6px;
+            font-size: 10px;
+            background: #fff;
+        }
+        .champ-box span { font-weight: bold; }
+
+        .titre-formulaire {
+            width: 100%;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 4px 0 6px 0;
+            letter-spacing: 0.3px;
+            word-wrap: break-word;
+        }
+
+        table.grille-statistique { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 9px; 
+            table-layout: fixed; 
+        }
+        
+        table.grille-statistique th, 
+        table.grille-statistique td { 
+            border: 1px solid #444;
+            padding: 5px 0;
+            text-align: center;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: clip;
+        }
+
+        table.grille-statistique th { background-color: #5a738e; color: white; font-weight: bold; }
+        
+        table.grille-statistique th.col-pays,
+        table.grille-statistique td.col-pays {
+            text-align: left;
+            padding-left: 6px !important;
+            font-weight: bold !important;
+            color: #000 !important;
+            background-color: #fafbfb;
+            white-space: nowrap !important;
+            overflow: visible !important;
+            font-size: 14px;
+        }
+        
+        table.grille-statistique th.col-jour,
+        table.grille-statistique td.col-jour {
+            font-family: Arial, sans-serif;
+            color: #000;
+            white-space: nowrap;
+        }
+
+        table.grille-statistique th.col-total,
+        table.grille-statistique td.col-total {
+            font-weight: bold !important;
+            color: #000;
+            background-color: #eaeded;
+        }
+
+        .total-row { font-weight: bold !important; background-color: #d5dbdb; }
+
+        /* ============================================================ */
+        /* IMPRESSION INDÉPENDANTE / SÉLECTIVE                          */
+        /* ============================================================ */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 4mm;
+            }
+
+            html, body {
+                width: 100% !important;
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+            }
+
+            .no-print-bar, .page-action-header { 
+                display: none !important; 
+            }
+
+            .main-container {
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body.print-single .section-page {
+                display: none !important;
+            }
+
+            body.print-single .section-page.target-print {
+                display: block !important;
+                width: 100% !important;
+                height: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            body:not(.print-single) .section-page {
+                display: block !important;
+                break-after: page !important;
+                page-break-after: always !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+            }
+
+            body:not(.print-single) .section-page:last-child {
+                break-after: auto !important;
+                page-break-after: auto !important;
+            }
+
+            /* --- FIX : la fiche et le tableau remplissent toute la page --- */
+            .container-fiche {
+                width: 100% !important;
+                max-width: 245mm !important;
+                margin: 0 auto !important;
+                height: 100% !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+
+            table.grille-statistique {
+                table-layout: fixed !important;
+                width: 100% !important;
+                font-size: 8px !important;
+                flex: 1 !important;
+                height: 100% !important;
+            }
+
+            table.grille-statistique th, 
+            table.grille-statistique td {
+                padding: 3px 0 !important;
+                line-height: 1.15 !important;
+                border: 1px solid #333 !important;
+                overflow: hidden !important;
+                text-overflow: clip !important;
+            }
+
+            table.grille-statistique th.col-pays,
+            table.grille-statistique td.col-pays {
+                font-size: 12px !important;
+                font-weight: bold !important;
+                color: #000 !important;
+                white-space: nowrap !important;
+                overflow: visible !important;
+                padding-left: 4px !important;
+                text-align: left !important;
+            }
+
+            table.grille-statistique tr,
+            table.grille-statistique thead {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            table.grille-statistique th.col-jour,
+            table.grille-statistique td.col-jour {
+                font-size: 7.5px !important;
+                font-weight: bold !important;
+                color: #000 !important;
+                text-align: center !important;
+            }
+
+            table.grille-statistique th.col-total,
+            table.grille-statistique td.col-total {
+                font-size: 8px !important;
+                font-weight: bold !important;
+                color: #000 !important;
+                text-align: center !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- DÉFINITION UNIFIÉE DE LA LISTE DES LIGNES D'ÉTAT (MINISTÈRE) -->
+    {% set lignes_ministere = [
+        'Résidents nationaux', 'Résidents étrangers', 'Pays de l\'UEMOA', 'Nigeria',
+        'CEDEAO hors UEMOA', 'Maghreb', 'Autres pays d\'Afrique', 'France',
+        'Allemagne', 'Italie', 'Belgique', 'Espagne', 'Russie', 'Autres pays d\'Europe',
+        'USA', 'Canada', 'Autres pays d\'Amérique', 'Japon', 'Chine', 'Inde',
+        'Moyen-Orient', 'Autres pays d\'Asie', 'Australie', 'Reste du monde', 'Pays non déclarés'
+    ] %}
+
+    <!-- BARRE GLOBALE DE NAVIGATION -->
+    <div class="no-print-bar">
+        <div style="display: flex; gap: 15px;">
+            <a href="{{ url_for('dashboard') }}" style="color: #2c3e50; font-weight: bold; text-decoration: none;">⬅ DASHBOARD</a>
+            <a href="{{ url_for('releve') }}" style="color: #d35400; font-weight: bold; text-decoration: none;">📋 RELEVÉ</a>
+        </div>
+        
+        <form action="{{ url_for('stats') }}" method="get" style="display: flex; gap: 5px;">
+            <select name="mois">
+                <option value="1" {% if mois == 1 %}selected{% endif %}>Janvier</option>
+                <option value="2" {% if mois == 2 %}selected{% endif %}>Février</option>
+                <option value="3" {% if mois == 3 %}selected{% endif %}>Mars</option>
+                <option value="4" {% if mois == 4 %}selected{% endif %}>Avril</option>
+                <option value="5" {% if mois == 5 %}selected{% endif %}>Mai</option>
+                <option value="6" {% if mois == 6 %}selected{% endif %}>Juin</option>
+                <option value="7" {% if mois == 7 %}selected{% endif %}>Juillet</option>
+                <option value="8" {% if mois == 8 %}selected{% endif %}>Août</option>
+                <option value="9" {% if mois == 9 %}selected{% endif %}>Septembre</option>
+                <option value="10" {% if mois == 10 %}selected{% endif %}>Octobre</option>
+                <option value="11" {% if mois == 11 %}selected{% endif %}>Novembre</option>
+                <option value="12" {% if mois == 12 %}selected{% endif %}>Décembre</option>
+            </select>
+            <select name="annee">
+                {% for a in range(2025, 2051) %}
+                <option value="{{ a }}" {% if a == annee %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" style="cursor: pointer; font-weight: bold;">FILTRER</button>
+        </form>
+
+        <button onclick="imprimerTout()" style="background: #27ae60; color: white; border: none; padding: 7px 14px; font-weight: bold; cursor: pointer; border-radius: 3px;">🖨 IMPRIMER TOUT LE DOSSIER (4 PAGES)</button>
+    </div>
+
+    <div class="main-container">
+
+        <!-- ============================================================ -->
+        <!-- SECTION 1 : RH & FRÉQUENTATION                               -->
+        <!-- ============================================================ -->
+        <div class="section-page" id="page-1">
+            <div class="page-action-header">
+                <span><strong>PAGE 1 :</strong> RAPPORT RH & FRÉQUENTATION</span>
+                <button class="btn-print-single" onclick="imprimerSection('page-1')">🖨 Imprimer cette page</button>
+            </div>
+            <div class="bloc-management">
+                <h1>{{ hotel.nom }} - MARADI</h1>
+                <h2>RAPPORT DE GESTION MENSUEL</h2>
+                <p style="text-align: center; font-weight: bold; margin: 4px 0; font-size: 12px;">Période : {{ hotel.mois_nom }} {{ hotel.annee }}</p>
+
+                <h3>1. Ressources Humaines & Capacité</h3>
+                <table>
+                    <tr><td style="width: 75%;">Employés Permanents</td><td>00</td></tr>
+                    <tr><td>Employés Temporaires</td><td>06</td></tr>
+                    <tr><td>Chambres Offertes</td><td>09</td></tr>
+                    <tr>
+                        <td>Chambres Occupées Ce Mois</td>
+                        <td class="highlight">{{ "%02d"|format(stats.chambres_occupees|default(0)) }}</td>
+                    </tr>
+                </table>
+
+                <h3>2. Fréquentation & Exploitation</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 75%;">Indicateurs de Performance</th>
+                            <th>Valeurs</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nombre de clients - Début de mois (01 au 20)</td>
+                            <td class="highlight">{{ stats.clients_debut|default(0) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Nombre de clients - Fin de mois (21 au {{ stats.nb_jours|default(31) }})</td>
+                            <td class="highlight">{{ stats.clients_fin|default(0) }}</td>
+                        </tr>
+                        <tr>
+                            <td>Total des Arrivées enregistrées</td>
+                            <td>{{ total_arrivees|default(0) }} voyageur(s)</td>
+                        </tr>
+                        <tr>
+                            <td>Total des Nuitées du mois</td>
+                            <td>{{ stats.total_nuitees|default(0) }} nuitée(s)</td>
+                        </tr>
+                        <tr>
+                            <td>Chiffre d'Affaires Mensuel Estimé (Hébergement)</td>
+                            <td class="highlight">{{ "{:,.0f}".format(stats.chiffre_affaires|default(0)).replace(',', ' ') }} FCFA</td>
+                        </tr>
+                        <tr>
+                            <td>Taux d'Occupation moyen</td>
+                            <td>{{ stats.taux_occupation|default(0) }} %</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 2 : SOMMAIRE NATIONALITÉS                            -->
+        <!-- ============================================================ -->
+        <div class="section-page" id="page-2">
+            <div class="page-action-header">
+                <span><strong>PAGE 2 :</strong> RÉPARTITION DES NATIONALITÉS</span>
+                <button class="btn-print-single" onclick="imprimerSection('page-2')">🖨 Imprimer cette page</button>
+            </div>
+            <div class="bloc-management">
+                <h1>{{ hotel.nom }} - MARADI</h1>
+                <h2>RAPPORT DE GESTION MENSUEL</h2>
+                <p style="text-align: center; font-weight: bold; margin: 4px 0; font-size: 12px;">Période : {{ hotel.mois_nom }} {{ hotel.annee }}</p>
+
+                <h3>3. Répartition par Nationalités (Sommaire)</h3>
+                <table>
+                    <thead>
+                        <tr><th>Pays d'origine</th><th style="width: 150px;">Effectif</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for pays, count in stats.nationalites.items() %}
+                        <tr><td>{{ pays }}</td><td>{{ count }}</td></tr>
+                        {% else %}
+                        <tr><td colspan="2" style="text-align: center;">Aucune donnée ce mois-ci</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 3 : GRILLE MINISTÈRE ( NUITÉES )                     -->
+        <!-- ============================================================ -->
+        <div class="section-page" id="page-3">
+            <div class="page-action-header">
+                <span><strong>PAGE 3 :</strong> FICHE MINISTÈRE (NUITÉES)</span>
+                <button class="btn-print-single" onclick="imprimerSection('page-3')">🖨 Imprimer cette fiche</button>
+            </div>
+            <div class="container-fiche">
+                <div class="header-bandeau">
+                    <div class="ministere-titre">
+                        MINISTERE DE L'ARTISANAT ET DU TOURISME<br>
+                        <span style="font-size: 9px; font-weight: normal;">DIRECTION DE LA STATISTIQUE</span>
+                    </div>
+                    
+                    <div class="champs-hotel">
+                        <div class="champ-box">Hôtel : <span>{{ hotel.nom }}</span></div>
+                        <div class="champ-box">Catégorie : <span>NC</span></div>
+                        <div class="champ-box">Mois : <span>{{ hotel.mois_nom }}</span></div>
+                        <div class="champ-box">Année : <span>{{ hotel.annee }}</span></div>
+                        <div class="champ-box">Total nuitées : <span style="color: #1a5276;">{{ stats.total_nuitees|default(0) }}</span></div>
+                    </div>
+                </div>
+
+                <div class="titre-formulaire">
+                    FORMULAIRES DE RELEVÉ DES MOUVEMENTS DE VOYAGEURS DANS LES ÉTABLISSEMENTS HÔTELIERS AU NIGER (NUITÉES)
+                </div>
+
+                <table class="grille-statistique">
+                    <colgroup>
+                        <col style="width:72mm">
+                        {% for i in range(31) %}
+                        <col style="width:4.7mm">
+                        {% endfor %}
+                        <col style="width:16mm">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="vertical-align: middle;" class="col-pays">PAYS DE RÉSIDENCE</th>
+                            <th colspan="31">Nombre de clients par pays dormant chaque jour dans l'hotel. Fiche Nuitée</th>
+                            <th class="col-total" rowspan="2" style="vertical-align: middle;">TOTAL NUITÉES</th>
+                        </tr>
+                        <tr>
+                            {% for j in range(1, 32) %}
+                            <th class="col-jour">{{ j }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in lignes_ministere %}
+                        <tr>
+                            <td class="col-pays">{{ ligne }}</td>
+                            {% set total_ligne = namespace(val=0) %}
+                            {% for j in range(1, 32) %}
+                                <td class="col-jour">
+                                    {% set val = grille_nuitees.get(ligne, {}).get(j|string, 0) | int %}
+                                    {% set total_ligne.val = total_ligne.val + val %}
+                                    {{ val if val > 0 else '' }}
+                                </td>
+                            {% endfor %}
+                            <td class="col-total">{{ total_ligne.val if total_ligne.val > 0 else '' }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        <tr class="total-row">
+                            <td class="col-pays">TOTAL DU MONDE</td>
+                            {% for j in range(1, 32) %}
+                                <td class="col-jour">
+                                    {% set total_j = namespace(val=0) %}
+                                    {% for pays_cle in lignes_ministere %}
+                                        {% set val_p = grille_nuitees.get(pays_cle, {}).get(j|string, 0) | int %}
+                                        {% set total_j.val = total_j.val + val_p %}
+                                    {% endfor %}
+                                    {{ total_j.val if total_j.val > 0 else '' }}
+                                </td>
+                            {% endfor %}
+                            <td class="col-total">{{ stats.total_nuitees if stats.total_nuitees|default(0) > 0 else '' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- SECTION 4 : DUPLICATA MINISTÈRE ( ARRIVÉES )                 -->
+        <!-- ============================================================ -->
+        <div class="section-page" id="page-4">
+            <div class="page-action-header">
+                <span><strong>PAGE 4 :</strong> FICHE MINISTÈRE (ARRIVÉES)</span>
+                <button class="btn-print-single" onclick="imprimerSection('page-4')">🖨 Imprimer cette fiche</button>
+            </div>
+            <div class="container-fiche">
+                <div style="text-align: right; font-weight: bold; font-size: 10px; color: #c0392b; margin-bottom: 2px;">
+                    [ DUPLICATA - ARRIVÉES ]
+                </div>
+
+                <div class="header-bandeau">
+                    <div class="ministere-titre">
+                        MINISTERE DE L'ARTISANAT ET DU TOURISME<br>
+                        <span style="font-size: 9px; font-weight: normal;">DIRECTION DE LA STATISTIQUE</span>
+                    </div>
+                    
+                    <div class="champs-hotel">
+                        <div class="champ-box">Hôtel : <span>{{ hotel.nom }}</span></div>
+                        <div class="champ-box">Catégorie : <span>NC</span></div>
+                        <div class="champ-box">Mois : <span>{{ hotel.mois_nom }}</span></div>
+                        <div class="champ-box">Année : <span>{{ hotel.annee }}</span></div>
+                        <div class="champ-box">Total arrivées : <span style="color: #1a5276;">{{ total_arrivees|default(0) }}</span></div>
+                    </div>
+                </div>
+
+                <div class="titre-formulaire">
+                    FORMULAIRES DE RELEVÉ DES MOUVEMENTS DE VOYAGEURS DANS LES ÉTABLISSEMENTS HÔTELIERS AU NIGER (ARRIVÉES)
+                </div>
+
+                <table class="grille-statistique">
+                    <colgroup>
+                        <col style="width:72mm">
+                        {% for i in range(31) %}
+                        <col style="width:4.7mm">
+                        {% endfor %}
+                        <col style="width:16mm">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="vertical-align: middle;" class="col-pays">PAYS DE RÉSIDENCE</th>
+                            <th colspan="31">Nombre d'arrivées de clients par pays chaque jour dans l'hotel</th>
+                            <th class="col-total" rowspan="2" style="vertical-align: middle;">TOTAL ARRIVÉES</th>
+                        </tr>
+                        <tr>
+                            {% for j in range(1, 32) %}
+                            <th class="col-jour">{{ j }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in lignes_ministere %}
+                        <tr>
+                            <td class="col-pays">{{ ligne }}</td>
+                            {% set total_ligne_arr = namespace(val=0) %}
+                            {% for j in range(1, 32) %}
+                                <td class="col-jour">
+                                    {% set val_arr = grille_arrivees.get(ligne, {}).get(j|string, 0) | int %}
+                                    {% set total_ligne_arr.val = total_ligne_arr.val + val_arr %}
+                                    {{ val_arr if val_arr > 0 else '' }}
+                                </td>
+                            {% endfor %}
+                            <td class="col-total">{{ total_ligne_arr.val if total_ligne_arr.val > 0 else '' }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        <tr class="total-row">
+                            <td class="col-pays">TOTAL DU MONDE</td>
+                            {% for j in range(1, 32) %}
+                                <td class="col-jour">
+                                    {% set total_j_arr = namespace(val=0) %}
+                                    {% for pays_cle in lignes_ministere %}
+                                        {% set val_pa = grille_arrivees.get(pays_cle, {}).get(j|string, 0) | int %}
+                                        {% set total_j_arr.val = total_j_arr.val + val_pa %}
+                                    {% endfor %}
+                                    {{ total_j_arr.val if total_j_arr.val > 0 else '' }}
+                                </td>
+                            {% endfor %}
+                            <td class="col-total">{{ total_arrivees if total_arrivees|default(0) > 0 else '' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPTS DE GESTION DES IMPRESSIONS INDIVIDUELLES -->
+    <script>
+        function imprimerSection(sectionId) {
+            document.body.classList.add('print-single');
+            document.querySelectorAll('.section-page').forEach(el => {
+                el.classList.remove('target-print');
+            });
+            const target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.add('target-print');
+                window.print();
+            }
+        }
+
+        function imprimerTout() {
+            document.body.classList.remove('print-single');
+            document.querySelectorAll('.section-page').forEach(el => {
+                el.classList.remove('target-print');
+            });
+            window.print();
+        }
+
+        window.onafterprint = function() {
+            document.body.classList.remove('print-single');
+            document.querySelectorAll('.section-page').forEach(el => {
+                el.classList.remove('target-print');
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.date-generation').forEach(el => {
+                if (!el.textContent.trim()) {
+                    const maintenant = new Date();
+                    const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                    el.textContent = maintenant.toLocaleDateString('fr-FR', options);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enregistrement - Hôtel Le Prestige</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --prestige-gold: #c5a059;
+            --prestige-gold-dark: #a68549;
+            --paper-ivory: #fdfaf1;
+            --sand-bg: #e8e2d6;
+            --text-ebony: #2c2c2c;
+            --border-soft: rgba(197, 160, 89, 0.4);
+            --error-red: #c0392b;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sand-bg);
+            background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+            color: var(--text-ebony);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--paper-ivory);
+            padding: 60px;
+            border-radius: 2px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.15);
+            border: 1px solid var(--border-soft);
+            position: relative;
+        }
+
+        .container::before {
+            content: "H P";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            border: 2px solid var(--prestige-gold);
+            padding: 10px;
+            font-family: 'Cinzel';
+            color: var(--prestige-gold);
+            opacity: 0.5;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        header { text-align: center; margin-bottom: 50px; border-bottom: 2px solid var(--prestige-gold); padding-bottom: 25px; }
+        header h2 { font-family: 'Cinzel', serif; font-size: 2rem; letter-spacing: 5px; margin: 0; text-transform: uppercase; }
+        header p { font-size: 0.85rem; letter-spacing: 3px; color: var(--prestige-gold); margin-top: 10px; font-weight: 600; }
+
+        .section-title { font-family: 'Cinzel', serif; color: var(--prestige-gold); background: rgba(197, 160, 89, 0.08); padding: 12px 20px; margin: 45px 0 20px 0; font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; border-left: 4px solid var(--prestige-gold); }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 40px; }
+        .form-group { display: flex; flex-direction: column; }
+        .full-width { grid-column: span 2; }
+        label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 8px; font-weight: 600; }
+        .required-mark { color: var(--error-red); }
+        .optional-mark { color: #999; font-style: italic; text-transform: none; font-weight: 400; }
+
+        input, select { background: rgba(255, 255, 255, 0.7); border: 1px solid var(--border-soft); padding: 12px; border-radius: 0; color: var(--text-ebony); font-family: 'Montserrat', sans-serif; font-size: 14px; transition: all 0.3s ease; }
+        input:focus, select:focus { outline: none; border-color: var(--prestige-gold); background: white; box-shadow: 0 5px 15px rgba(197, 160, 89, 0.1); }
+        input.field-error, select.field-error { border-color: var(--error-red) !important; background-color: #fff9f9; }
+
+        .btn-valider { background: var(--text-ebony); color: var(--paper-ivory); border: 1px solid var(--text-ebony); padding: 22px; width: 100%; font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 4px; cursor: pointer; margin-top: 50px; transition: all 0.4s; }
+        .btn-valider:hover { background: var(--prestige-gold); border-color: var(--prestige-gold); color: white; }
+        .back-link { display: block; text-align: center; margin-top: 30px; color: #888; text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+        .alert-box { background: #fdecea; color: #8b1e1e; padding: 15px; margin-bottom: 25px; border-left: 5px solid var(--error-red); font-size: 14px; display: none; }
+
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } .container { padding: 30px 20px; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h2>Fiche de Renseignement</h2>
+        <p>Hôtel Le Prestige - Maradi</p>
+    </header>
+
+    {% if erreur %}
+    <div class="alert-box" style="display: block;">⚠️ {{ erreur }}</div>
+    {% endif %}
+
+    <div id="js-error" class="alert-box">⚠️ Veuillez remplir tous les champs obligatoires (*) et respecter le format JJ/MM/AAAA.</div>
+
+    <form action="/fiche" method="POST" id="policeForm" novalidate>
+        
+
+        <div class="section-title">1. État Civil & Identité</div>
+        <div class="grid">
+            <div class="form-group"><label>Nom de famille <span class="required-mark">*</span></label><input type="text" name="nom" required></div>
+            <div class="form-group"><label>Prénom(s) <span class="required-mark">*</span></label><input type="text" name="prenom" required></div>
+            <div class="form-group">
+                <label>Nationalité <span class="required-mark">*</span></label>
+                <input type="text" name="nationalite" list="nationalites-list" required placeholder="Chercher une nationalité..." autocomplete="off">
+                <datalist id="nationalites-list">
+                    <option value="NIGERIENNE"><option value="NIGERIANE"><option value="TCHADIENNE"><option value="BENINOISE"><option value="BURKINABAISE"><option value="MALIENNE"><option value="TOGOLAISE"><option value="SENEGALAISE"><option value="IVOIRIENNE"><option value="CAMEROUNAISE"><option value="ALGERIENNE"><option value="FRANCAISE"><option value="CHINOISE"><option value="AMERICAINE"><option value="LIBYENNE"><option value="MAROCAINE"><option value="GHANEENNE">
+                </datalist>
+            </div>
+            <div class="form-group"><label>Date de Naissance <span class="required-mark">*</span></label><input type="text" name="date_naissance" class="date-mask" placeholder="JJ/MM/AAAA" maxlength="10" required></div>
+            <div class="form-group"><label>Lieu de Naissance <span class="required-mark">*</span></label><input type="text" name="lieu_naissance" required></div>
+            
+            <!-- MODIFICATION ICI : Champ facultatif -->
+            <div class="form-group">
+                <label>Situation Familiale <span class="optional-mark">(facultatif)</span></label>
+                <select name="situation_familiale">
+                    <option value="" selected>Choisir...</option>
+                    <option value="Célibataire">Célibataire</option><option value="Marié(e)">Marié(e)</option><option value="Divorcé(e)">Divorcé(e)</option><option value="Veuf/Veuve">Veuf/Veuve</option>
+                </select>
+            </div>
+            
+            <div class="form-group"><label>Profession <span class="required-mark">*</span></label><input type="text" name="profession" required></div>
+            <div class="form-group"><label>Contact Téléphonique <span class="required-mark">*</span></label><input type="tel" name="telephone" required></div>
+        </div>
+
+        <div class="section-title">2. Domicile & Itinéraire</div>
+        <div class="grid">
+            <div class="form-group full-width"><label>Domicile Habituel (Ville / Pays) <span class="required-mark">*</span></label><input type="text" name="domicile_habituel" required></div>
+            <div class="form-group"><label>Lieu de Provenance <span class="required-mark">*</span></label><input type="text" name="provenance" required></div>
+            <div class="form-group"><label>Destination Finale <span class="required-mark">*</span></label><input type="text" name="destination" required></div>
+            <div class="form-group"><label>Mode de Transport <span class="optional-mark">(facultatif)</span></label><input type="text" name="mode_transport" placeholder="Ex: Bus, Avion, Privé"></div>
+            <div class="form-group"><label>Immatriculation <span class="optional-mark">(si véhicule)</span></label><input type="text" name="immatriculation"></div>
+        </div>
+
+        <div class="section-title">3. Pièce d'Identité</div>
+        <div class="grid">
+            <div class="form-group"><label>Type de document <span class="required-mark">*</span></label>
+                <select name="type_piece" required>
+                    <option value="CNI (Carte d'identité)">CNI (Carte d'identité)</option><option value="Passeport">Passeport</option><option value="Permis de conduire">Permis de conduire</option><option value="Autre">Autre</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Numéro de la pièce <span class="required-mark">*</span></label><input type="text" name="num_piece" required></div>
+            <div class="form-group"><label>Date de délivrance <span class="required-mark">*</span></label><input type="text" name="date_delivrance" class="date-mask" placeholder="JJ/MM/AAAA" maxlength="10" required></div>
+            <div class="form-group"><label>Lieu de délivrance <span class="required-mark">*</span></label><input type="text" name="lieu_delivrance" required></div>
+        </div>
+
+        <div class="section-title">4. Détails du Séjour</div>
+        <div class="grid">
+            <div class="form-group"><label>Numéro de Chambre / Suite <span class="required-mark">*</span></label>
+                <select name="chambre_num" required>
+                    {% for i in range(1, 11) %}<option value="{{ '%02d' % i }}">Suite {{ '%02d' % i }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group"></div>
+            <div class="form-group"><label>Date d'Arrivée <span class="required-mark">*</span></label><input type="text" name="date_arrivee" id="arr" class="date-mask" placeholder="JJ/MM/AAAA" maxlength="10" required></div>
+            <div class="form-group"><label>Date de Départ Prévue <span class="required-mark">*</span></label><input type="text" name="date_depart" id="dep" class="date-mask" placeholder="JJ/MM/AAAA" maxlength="10" required></div>
+        </div>
+
+        <button type="submit" class="btn-valider">💾 VALIDER ET ENREGISTRER</button>
+    </form>
+
+    <a href="/dashboard" class="back-link">⬅ Retour au menu de gestion</a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('policeForm');
+        const jsError = document.getElementById('js-error');
+        const dateMasks = document.querySelectorAll('.date-mask');
+
+        dateMasks.forEach(input => {
+            input.addEventListener('input', function(e) {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 4) e.target.value = v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4, 8);
+                else if (v.length > 2) e.target.value = v.slice(0, 2) + '/' + v.slice(2);
+                else e.target.value = v;
+            });
+        });
+
+        function getToday() {
+            const d = new Date();
+            return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+        }
+        document.getElementById('arr').value = getToday();
+
+        form.onsubmit = function(e) {
+            let error = false;
+            jsError.style.display = 'none';
+
+            form.querySelectorAll('[required]').forEach(input => {
+                if (!input.value.trim()) { input.classList.add('field-error'); error = true; }
+                else { input.classList.remove('field-error'); }
+            });
+
+            const parseDate = (str) => {
+                const p = str.split('/');
+                return new Date(p[2], p[1] - 1, p[0]);
+            };
+
+            const arrVal = document.getElementById('arr').value;
+            const depVal = document.getElementById('dep').value;
+            
+            if (parseDate(depVal) <= parseDate(arrVal)) {
+                document.getElementById('dep').classList.add('field-error');
+                alert("Erreur : La date de départ doit être après l'arrivée.");
+                error = true;
+            }
+
+            if (error) { e.preventDefault(); jsError.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        };
+    });
+</script>
+
+</body>
+</html>

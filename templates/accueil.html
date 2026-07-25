@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOTEL PENSION LE PRESTIGE</title>
+    <style>
+        /* ===================== */
+        /*   STYLE DE BASE       */
+        /* ===================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom right, #e0f7f1, #c3f0d9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden; /* Empêche les barres de défilement pendant l'animation */
+        }
+
+        /* ===================== */
+        /*   PAGE D'ACCUEIL      */
+        /* ===================== */
+        .accueil {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 60px 80px;
+            border-radius: 20px;
+            box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .titre-principal {
+            font-size: 3em;
+            font-weight: 700;
+            color: #006633;
+            text-shadow: 2px 2px #a3d9a5;
+            margin-bottom: 25px;
+        }
+
+        .titre-principal .prestige {
+            color: #004d26;
+        }
+
+        .nom-directeur {
+            font-size: 1.4em;
+            font-weight: 500;
+            color: #034d27;
+            margin-bottom: 50px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 18px 45px;
+            font-size: 1.2em;
+            color: white;
+            background-color: #006633;
+            border: none;
+            border-radius: 12px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            background-color: #004d26;
+            transform: scale(1.05);
+        }
+
+        /* ============================== */
+        /*   ÉCRAN DE CHARGEMENT (PORTES) */
+        /* ============================== */
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Conteneur global de l'écran de chargement */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Les deux portes vertes */
+        .door {
+            position: absolute;
+            top: 0;
+            width: 50vw; /* Chaque porte prend la moitié de l'écran */
+            height: 100vh;
+            background-color: #004d26; /* Vert très prestige */
+            z-index: 1;
+        }
+
+        /* Porte de gauche : commence hors de l'écran à gauche */
+        .door-left {
+            left: -50vw;
+            animation: slideDoorLeft 0.6s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+        }
+
+        /* Porte de droite : commence hors de l'écran à droite */
+        .door-right {
+            right: -50vw;
+            animation: slideDoorRight 0.6s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideDoorLeft {
+            to { left: 0; }
+        }
+
+        @keyframes slideDoorRight {
+            to { right: 0; }
+        }
+
+        /* Le contenu (Titre et texte) qui apparaît une fois les portes fermées */
+        .door-content {
+            position: relative;
+            z-index: 2;
+            color: white;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.9);
+            /* L'animation démarre après 0.6s (quand les portes se touchent) */
+            animation: revealContent 0.5s 0.6s ease forwards; 
+        }
+
+        .door-content h2 {
+            font-size: 3em;
+            font-weight: 700;
+            letter-spacing: 4px;
+            margin: 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .door-content p {
+            margin-top: 15px;
+            font-size: 1.2em;
+            font-style: italic;
+            opacity: 0.8;
+        }
+
+        @keyframes revealContent {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* ============================== */
+        /*   RESPONSIVE (MOBILE)          */
+        /* ============================== */
+        @media (max-width: 600px) {
+            .accueil {
+                padding: 40px 30px;
+                margin: 20px;
+            }
+
+            .titre-principal {
+                font-size: 2em;
+            }
+
+            .nom-directeur {
+                font-size: 1.1em;
+                margin-bottom: 30px;
+            }
+
+            .btn {
+                padding: 14px 35px;
+                font-size: 1em;
+            }
+
+            .door-content h2 {
+                font-size: 2em;
+            }
+
+            .door-content p {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================= -->
+    <!--   1. PAGE D'ACCUEIL            -->
+    <!-- ============================= -->
+    <div class="accueil" id="accueil">
+        <h1 class="titre-principal">HOTEL PENSION <span class="prestige">LE PRESTIGE</span></h1>
+        <p class="nom-directeur">Directeur : HOUGBETODE Codjo Guy</p>
+        <a href="{{ url_for('gerant') }}" class="btn" id="btn-entrer">Entrer</a>
+    </div>
+
+    <!-- ============================= -->
+    <!--   2. ÉCRAN DE CHARGEMENT       -->
+    <!-- ============================= -->
+    <div id="loading-screen" class="hidden">
+        <!-- La porte de gauche -->
+        <div class="door door-left"></div>
+        
+        <!-- La porte de droite -->
+        <div class="door door-right"></div>
+        
+        <!-- Le contenu central qui apparaît -->
+        <div class="door-content">
+            <h2>LE PRESTIGE</h2>
+            <p>Ouverture de votre espace...</p>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!--   3. SCRIPT DE TRANSITION      -->
+    <!-- ============================= -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn       = document.getElementById('btn-entrer');
+            const loading   = document.getElementById('loading-screen');
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault(); // Empêche le changement de page immédiat
+
+                const cible = this.getAttribute('href');
+
+                // Affiche l'écran de chargement (les portes glissent automatiquement grâce au CSS)
+                loading.classList.remove('hidden');
+
+                // Patiente 3 secondes au total (0.6s de portes + 2.4s de lecture du texte) avant de changer de page
+                setTimeout(() => {
+                    window.location.href = cible;
+                }, 3000);
+            });
+        });
+    </script>
+
+</body>
+</html>

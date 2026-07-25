@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des clients</title>
+    <style>
+        body {
+            font-family: 'Verdana', Geneva, Tahoma, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .clients {
+            background-color: #ffffff;
+            padding: 40px 60px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            width: 500px;
+            text-align: center;
+        }
+
+        .clients h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        .clients ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .clients li {
+            background-color: #ecf0f1;
+            margin-bottom: 12px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        .clients li:hover {
+            background-color: #d0d7de;
+        }
+
+        .clients li a {
+            color: #2980b9;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .clients li a:hover {
+            color: #1c5980;
+            text-decoration: underline;
+        }
+
+        p {
+            color: #7f8c8d;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="clients">
+        <h1>Liste des clients enregistrés</h1>
+        {% if clients %}
+            <ul>
+                {% for client in clients %}
+                    <li>{{ client['nom'] }} {{ client['prenom'] }} - 
+                        <a href="{{ url_for('generer_pdf', index=loop.index0) }}">Télécharger PDF</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Aucun client enregistré.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport & Fiche des Arrivées - {{ stats.mois_nom }} {{ stats.annee }}</title>
+    <style>
+        /* Styles de base - Style Administratif Épuré */
+        body { font-family: 'Arial', 'Times New Roman', sans-serif; line-height: 1.2; color: #000; background-color: #f4f7f6; margin: 0; padding: 0; }
+        .container { max-width: 1300px; margin: 10px auto; background: white; padding: 20px; border-radius: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        h1 { font-size: 20px; color: #000; text-align: center; margin: 0; padding-bottom: 5px; border-bottom: 2px solid #000; }
+        h2 { font-size: 16px; color: #000; text-align: center; margin: 5px 0 15px 0; }
+        h3 { font-size: 14px; color: #000; border-left: 4px solid #000; padding-left: 8px; margin: 20px 0 8px 0; background: #f9f9f9; text-transform: uppercase; font-weight: bold; }
+        
+        /* Tableaux des parties 1, 2 et 3 */
+        table.stats-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px; }
+        table.stats-table th, table.stats-table td { border: 1px solid #000; padding: 6px 10px; text-align: left; }
+        table.stats-table th { background-color: #f2f2f2; color: #000; font-weight: bold; }
+        .highlight { font-weight: bold; color: #000; }
+        
+        .footer { font-size: 11px; margin-top: 25px; text-align: center; color: #555; border-top: 1px solid #000; padding-top: 10px; }
+        .btn-print { background: #000; color: white; padding: 8px 15px; border: 1px solid #000; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .btn-print:hover { background: #333; }
+        .nav-bar { background: #fff; padding: 10px; margin-bottom: 10px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+
+        /* ==========================================
+           STRUCTURE STRICTE DU FORMULAIRE NIGER (PARTIE 4)
+           ========================================== */
+        .fiche-officielle-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #000;
+            background: #fff;
+        }
+        
+        /* Bandeau supérieur horizontal */
+        .ministere-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #000;
+            padding: 10px;
+            background: #fff;
+            margin-bottom: 10px;
+        }
+        .ministere-titre {
+            font-weight: bold;
+            font-size: 13px;
+            text-align: left;
+            text-transform: uppercase;
+        }
+        .ministere-champs {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+        }
+        .champ-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .champ-box {
+            border: 1px solid #000;
+            padding: 2px 6px;
+            background: #fff;
+            min-width: 45px;
+            text-align: center;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        /* Titre principal sur toute la largeur */
+        .titre-formulaire-officiel {
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid #000;
+            background: #f2f2f2;
+            padding: 8px;
+            margin-bottom: 10px;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Conteneur pour le défilement horizontal sur écran */
+        .table-responsive-grille {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #000;
+        }
+        
+        /* Grille Nationale du Niger */
+        .grille-niger {
+            width: 100%;
+            min-width: 1250px; /* Force les 31 colonnes à garder leur taille sans s'écraser */
+            border-collapse: collapse;
+            background: #fff;
+        }
+        .grille-niger th, .grille-niger td {
+            border: 1px solid #000 !important;
+            padding: 4px 0;
+            font-size: 11px;
+            color: #000;
+            height: 22px;
+            box-sizing: border-box;
+        }
+        .grille-niger th {
+            background-color: #f2f2f2 !important;
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        /* Dimensions strictes demandées */
+        .col-pays { width: 260px !important; min-width: 260px !important; max-width: 260px !important; text-align: left; padding-left: 6px !important; font-weight: normal; }
+        .col-jour { width: 26px !important; min-width: 26px !important; max-width: 26px !important; text-align: center; }
+        .col-total { width: 85px !important; min-width: 85px !important; max-width: 85px !important; text-align: center; font-weight: bold; background: #f9f9f9; }
+        
+        /* Saisie des nombres (style écriture manuelle bleue sur fond transparent) */
+        .grille-niger input[type="number"] {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 11px;
+            font-family: 'Arial', sans-serif;
+            color: #0056b3; /* Effet stylo bleu pour la saisie */
+            font-weight: bold;
+            margin: 0;
+            padding: 0;
+            -moz-appearance: textfield;
+        }
+        .grille-niger input[type="number"]:focus {
+            background-color: #e8f4fd;
+            outline: none;
+        }
+        .grille-niger input[type="number"]::-webkit-outer-spin-button,
+        .grille-niger input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* ==========================================
+           GESTION DE L'IMPRESSION SUR DEUX PAGES
+           ========================================== */
+        @media print {
+            body { background: white; color: #000; }
+            .no-print { display: none !important; }
+            .container { width: 100%; margin: 0; padding: 0; box-shadow: none; max-width: 100%; }
+            
+            /* Les 3 premières parties restent en portrait */
+            table.stats-table { page-break-inside: avoid; }
+            
+            /* SAUT DE PAGE ET BASCULEMENT FORMAT PAYSAGE POUR LA GRILLE NIGER */
+            .fiche-officielle-section {
+                page-break-before: always; 
+                margin-top: 0;
+                padding-top: 0;
+                border-top: none;
+            }
+            
+            @page {
+                size: A4 portrait;
+                margin: 1cm;
+            }
+            
+            /* Assignation du format Paysage (Landscape) pour le formulaire officiel */
+            @page officielleLandscape {
+                size: A4 landscape;
+                margin: 0.6cm 0.4cm;
+            }
+            .fiche-officielle-section {
+                page: officielleLandscape;
+            }
+            
+            /* Rendu propre des inputs à l'impression */
+            .grille-niger input[type="number"] {
+                color: #0056b3 !important; /* Préserve la couleur bleue du stylo */
+            }
+            .grille-niger th {
+                background-color: #e6e6e6 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BARRE DE NAVIGATION ET FILTRES (INVISIBLE À L'IMPRESSION) -->
+    <div class="no-print nav-bar">
+        <div style="display: flex; gap: 15px;">
+            <a href="{{ url_for('dashboard') }}" style="color: #000; font-weight: bold; text-decoration: none;">⬅ DASHBOARD</a>
+            <a href="{{ url_for('releve') }}" style="color: #000; font-weight: bold; text-decoration: none;">📋 RELEVÉ</a>
+        </div>
+        <form action="{{ url_for('stats') }}" method="get" style="display: flex; gap: 5px;">
+            <select name="mois">
+                <option value="1" {% if mois == 1 %}selected{% endif %}>Janvier</option>
+                <option value="2" {% if mois == 2 %}selected{% endif %}>Février</option>
+                <option value="3" {% if mois == 3 %}selected{% endif %}>Mars</option>
+                <option value="4" {% if mois == 4 %}selected{% endif %}>Avril</option>
+                <option value="5" {% if mois == 5 %}selected{% endif %}>Mai</option>
+                <option value="6" {% if mois == 6 %}selected{% endif %}>Juin</option>
+                <option value="7" {% if mois == 7 %}selected{% endif %}>Juillet</option>
+                <option value="8" {% if mois == 8 %}selected{% endif %}>Août</option>
+                <option value="9" {% if mois == 9 %}selected{% endif %}>Septembre</option>
+                <option value="10" {% if mois == 10 %}selected{% endif %}>Octobre</option>
+                <option value="11" {% if mois == 11 %}selected{% endif %}>Novembre</option>
+                <option value="12" {% if mois == 12 %}selected{% endif %}>Décembre</option>
+            </select>
+            <select name="annee">
+                {% for a in range(2025, 2035) %}
+                <option value="{{ a }}" {% if a == annee %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" style="cursor: pointer; background: #000; color: #fff; border: 1px solid #000; font-weight: bold;">FILTRER</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <!-- PAGE 1 : RAPPORT MANAGER INTERNE (PORTRAIT) -->
+        <h1>HOTEL LE PRESTIGE - MARADI</h1>
+        <h2>RAPPORT DE STATISTIQUES MENSUELLES</h2>
+        <p style="text-align: center; font-weight: bold; margin: 4px 0; font-size: 14px;">Période : {{ stats.mois_nom }} {{ stats.annee }}</p>
+
+        <h3>1. Ressources Humaines & Capacité</h3>
+        <table class="stats-table">
+            <tr><td style="width: 70%;">Employés Permanents</td><td>00</td></tr>
+            <tr><td>Employés Temporaires</td><td>06</td></tr>
+            <tr><td>Chambres Offertes</td><td>09</td></tr>
+            <tr>
+                <td>Chambres Occupées</td>
+                <td class="highlight">{{ "%02d"|format(stats.chambres_occupees) }}</td>
+            </tr>
+        </table>
+
+        <h3>2. Fréquentation & Exploitation</h3>
+        <table class="stats-table">
+            <thead>
+                <tr>
+                    <th style="width: 70%;">Indicateurs de Performance</th>
+                    <th>Valeurs</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Nombre de clients - Début de mois (01 au 20)</td>
+                    <td class="highlight">{{ stats.clients_debut }}</td>
+                </tr>
+                <tr>
+                    <td>Nombre de clients - Fin de mois (21 au {{ stats.nb_jours }})</td>
+                    <td class="highlight">{{ stats.clients_fin }}</td>
+                </tr>
+                <tr>
+                    <td>Total des Nuitées du mois</td>
+                    <td>{{ stats.total_nuitees }} nuitée(s)</td>
+                </tr>
+                <tr>
+                    <td>Chiffre d'Affaires Mensuel (Hébergement)</td>
+                    <td class="highlight">{{ "{:,.0f}".format(stats.chiffre_affaires).replace(',', ' ') }} FCFA</td>
+                </tr>
+                <tr>
+                    <td>Taux d'Occupation moyen</td>
+                    <td>{{ stats.taux_occupation }} %</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. Nationalités</h3>
+        <table class="stats-table">
+            <thead>
+                <tr><th>Pays d'origine</th><th style="width: 100px;">Effectif</th></tr>
+            </thead>
+            <tbody>
+                {% for pays, count in stats.nationalites.items() %}
+                <tr><td>{{ pays }}</td><td>{{ count }}</td></tr>
+                {% else %}
+                <tr><td colspan="2" style="text-align: center;">Néant</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+        <!-- =========================================================================================
+             PAGE 2 : LE FORMULAIRE NATIONAL OFFICIEL DU NIGER (DESSINÉ STRICTEMENT EN PAYSAGE)
+             ========================================================================================= -->
+        <div class="fiche-officielle-section">
+            
+            <!-- En-tête supérieur horizontal -->
+            <div class="ministere-header">
+                <div class="ministere-titre">
+                    MINISTERE DE L'ARTISANAT ET DU TOURISME : DIRECTION DE LA STATISTIQUE
+                </div>
+                <div class="ministere-champs">
+                    <div class="champ-item">Nombre de nuitées : <span class="champ-box" id="grand-total-nuitees">0</span></div>
+                    <div class="champ-item">Hôtel : <span class="champ-box" style="min-width: 70px;">Prestige</span></div>
+                    <div class="champ-item">Catégorie : <span class="champ-box">NC</span></div>
+                    <div class="champ-item">Année : <span class="champ-box">{{ annee }}</span></div>
+                    <div class="champ-item">Mois : <span class="champ-box">{{ "%02d"|format(mois) }}</span></div>
+                </div>
+            </div>
+
+            <!-- Titre principal -->
+            <div class="titre-formulaire-officiel">
+                FORMULAIRES DE RELEVÉ DES MOUVEMENTS DE VOYAGEURS DANS LES ÉTABLISSEMENTS HÔTELIERS AU NIGER
+            </div>
+
+            <!-- Grille complète des 31 jours -->
+            <div class="table-responsive-grille">
+                <table class="grille-niger">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="col-pays">PAYS DE RÉSIDENCE</th>
+                            <th colspan="31">JOURS DU MOIS</th>
+                            <th rowspan="2" class="col-total">NB TOTAL DE NUITÉES PAR PAYS</th>
+                        </tr>
+                        <tr>
+                            {% for jour in range(1, 32) %}
+                            <th class="col-jour">{{ jour }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set pays_liste = [
+                            'Présidents nationaux', 'Résidents étrangers', "Pays de l'UEMOA", 'Nigeria', 
+                            'CEDEAO hors UEMOA', 'Maghreb', 'Autres pays d\'Afrique', 'France', 
+                            'Allemagne', 'Italie', 'Belgique', 'Espagne', 'Russie', 'Autres pays d\'Europe', 
+                            'USA', 'Canada', 'Autres pays d\'Amérique', 'Japon', 'Chine', 'Inde', 
+                            'Moyen Orient', 'Autres pays d\'Asie', 'Australie', 'Reste du monde', 
+                            'Pays non déclaré'
+                        ] %}
+
+                        {# Lignes des pays à remplir #}
+                        {% for p in pays_liste %}
+                        <tr class="ligne-pays">
+                            <td class="col-pays">{{ p }}</td>
+                            {% for jour in range(1, 32) %}
+                            <td class="col-jour">
+                                <input type="number" min="0" class="input-cell jour-{{ jour }}" data-jour="{{ jour }}" value="0" oninput="calculerTotauxGrille()">
+                            </td>
+                            {% endfor %}
+                            <td class="col-total total-ligne">0</td>
+                        </tr>
+                        {% endfor %}
+
+                        {# Ligne officielle finale : Total du monde #}
+                        <tr style="font-weight: bold; background: #f2f2f2;" class="ligne-total-monde">
+                            <td class="col-pays" style="font-weight: bold;">Total du monde</td>
+                            {% for jour in range(1, 32) %}
+                            <td class="col-jour" style="text-align: center; font-weight: bold;">
+                                <span id="total-jour-{{ jour }}">0</span>
+                            </td>
+                            {% endfor %}
+                            <td id="total-general-grille" class="col-total" style="background: #e6e6e6;">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PIED DE PAGE ET BOUTON ACTION -->
+        <div class="footer">
+            <p style="margin: 2px 0;">Rapport officiel généré électroniquement le <span id="date-generation"></span> - Direction Hôtel Le Prestige</p>
+            <button class="no-print btn-print" onclick="window.print()" style="margin-top: 10px;">🖨 IMPRIMER LA FICHE OFFICIELLE (A4 PAYSAGE)</button>
+        </div>
+    </div>
+
+    <!-- CODE SCRIPT DE CALCUL DYNAMIQUE ET SÉCURISÉ -->
+    <script>
+        function calculerTotauxGrille() {
+            // 1. Somme par ligne (par pays de résidence)
+            const lignes = document.querySelectorAll('.ligne-pays');
+            lignes.forEach(ligne => {
+                let totalLigne = 0;
+                const inputs = ligne.querySelectorAll('.input-cell');
+                inputs.forEach(input => {
+                    totalLigne += parseInt(input.value) || 0;
+                });
+                ligne.querySelector('.total-ligne').textContent = totalLigne;
+            });
+
+            // 2. Somme par colonne (Chaque jour du 1 au 31)
+            let totalGeneral = 0;
+            for (let jour = 1; jour <= 31; jour++) {
+                let totalJour = 0;
+                const inputsJour = document.querySelectorAll(`.jour-${jour}`);
+                inputsJour.forEach(input => {
+                    totalJour += parseInt(input.value) || 0;
+                });
+                const cellJour = document.getElementById(`total-jour-${jour}`);
+                if (cellJour) cellJour.textContent = totalJour;
+                totalGeneral += totalJour;
+            }
+
+            // 3. Liaison avec le bandeau officiel supérieur et la cellule finale
+            document.getElementById('total-general-grille').textContent = totalGeneral;
+            document.getElementById('grand-total-nuitees').textContent = totalGeneral;
+        }
+
+        // Remplissage automatique de la date du jour
+        const maintenant = new Date();
+        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        document.getElementById('date-generation').textContent = maintenant.toLocaleDateString('fr-FR', options);
+        
+        // Lancement immédiat de la grille
+        calculerTotauxGrille();
+    </script>
+</body>
+</html>

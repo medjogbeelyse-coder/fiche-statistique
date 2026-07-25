@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion Gérant - Hôtel Le Prestige</title>
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        :root {
+            --prestige-gold: #c5a059;
+            --paper-ivory: #fdfaf1;
+            --sand-bg: #e8e2d6;
+            --text-ebony: #2c2c2c;
+            --error-red: #c0392b;
+        }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sand-bg);
+            background-image: url("https://transparenttextures.com");
+            color: var(--text-ebony);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background: var(--paper-ivory);
+            padding: 50px 40px;
+            border-radius: 4px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            color: var(--text-ebony);
+        }
+        .subtitle {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            color: var(--prestige-gold);
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+        label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        input {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(197, 160, 89, 0.4);
+            padding: 14px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            color: var(--text-ebony);
+            transition: 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--prestige-gold);
+            background: white;
+        }
+        .btn-login {
+            background: var(--text-ebony);
+            color: var(--paper-ivory);
+            border: 1px solid var(--text-ebony);
+            padding: 16px;
+            width: 100%;
+            font-family: 'Cinzel', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+        .btn-login:hover {
+            background: var(--prestige-gold);
+            border-color: var(--prestige-gold);
+            color: white;
+        }
+        .error-message {
+            background: #fdecea;
+            color: #8b1e1e;
+            padding: 12px;
+            margin-bottom: 25px;
+            border-left: 4px solid var(--error-red);
+            font-size: 13px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Espace Gérant</h2>
+    <div class="subtitle">Authentification Sécurisée</div>
+
+    {% if erreur %}
+    <div class="error-message">⚠️ {{ erreur }}</div>
+    {% endif %}
+
+    <form action="{{ url_for('gerant') }}" method="POST">
+        
+        
+        <div class="form-group">
+            <label>Nom du gérant</label>
+            <input type="text" name="nom" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+            <label>Prénom du gérant</label>
+            <input type="text" name="prenom" required>
+        </div>
+
+        <div class="form-group">
+            <label>Code d'accès secret</label>
+            <input type="password" name="mot_de_passe" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn-login">Se Connecter</button>
+    </form>
+</div>
+
+</body>
+</html>
