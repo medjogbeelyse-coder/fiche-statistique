@@ -4,139 +4,274 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion Gérant - Hôtel Le Prestige</title>
-    <link href="https://googleapis.com" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --prestige-gold: #c5a059;
-            --paper-ivory: #fdfaf1;
-            --sand-bg: #e8e2d6;
-            --text-ebony: #2c2c2c;
-            --error-red: #c0392b;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        :root {
+            --obsidienne: #0a0908;
+            --carte: #14110d;
+            --laiton: #b8934a;
+            --laiton-clair: #d9b978;
+            --champagne: #e9ddbe;
+            --ivoire: #f4f0e6;
+            --filet: #35301f;
+        }
+
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--sand-bg);
-            background-image: url("https://transparenttextures.com");
-            color: var(--text-ebony);
+            background: var(--obsidienne);
+            background-image:
+                radial-gradient(ellipse 70% 50% at 50% -10%, rgba(184, 147, 74, 0.10), transparent),
+                radial-gradient(ellipse 60% 40% at 50% 110%, rgba(184, 147, 74, 0.06), transparent);
+            font-family: 'Inter', sans-serif;
+            color: var(--ivoire);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 24px;
         }
-        .login-container {
-            background: var(--paper-ivory);
-            padding: 50px 40px;
-            border-radius: 4px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            border: 1px solid rgba(197, 160, 89, 0.3);
-            max-width: 450px;
-            width: 100%;
+
+        .login-box {
+            position: relative;
+            width: 420px;
+            max-width: 100%;
+            background: linear-gradient(175deg, var(--carte), #0d0b08);
+            border: 1px solid var(--filet);
+            padding: 56px 44px 40px;
             text-align: center;
+            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            transform: translateY(14px);
+            animation: entree 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        h2 {
-            font-family: 'Cinzel', serif;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-            color: var(--text-ebony);
+
+        @keyframes entree {
+            to { opacity: 1; transform: translateY(0); }
         }
-        .subtitle {
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            color: var(--prestige-gold);
-            text-transform: uppercase;
-            margin-bottom: 40px;
-            font-weight: 600;
+
+        /* Coins d'angle — motif art déco discret, remplace l'effet miroir */
+        .login-box::before,
+        .login-box::after,
+        .coin-bd,
+        .coin-bg {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border: 1px solid var(--laiton);
+            opacity: 0.7;
         }
-        .form-group {
+        .login-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+        .login-box::after  { top: -1px; right: -1px; border-left: none; border-bottom: none; }
+        .coin-bd { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+        .coin-bg { bottom: -1px; left: -1px; border-right: none; border-top: none; }
+
+        /* Monogramme */
+        .monogramme {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 22px;
+            border: 1px solid var(--laiton);
+            border-radius: 50%;
             display: flex;
-            flex-direction: column;
-            text-align: left;
-            margin-bottom: 25px;
-        }
-        label {
-            font-size: 11px;
-            text-transform: uppercase;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fraunces', serif;
+            font-size: 1.15em;
+            font-weight: 500;
             letter-spacing: 1px;
-            margin-bottom: 8px;
+            color: var(--laiton-clair);
+        }
+
+        .login-box h1 {
+            font-family: 'Fraunces', serif;
             font-weight: 600;
-            color: #555;
+            font-size: 1.85em;
+            letter-spacing: 0.3px;
+            color: var(--ivoire);
+            margin-bottom: 10px;
         }
-        input {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(197, 160, 89, 0.4);
-            padding: 14px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            color: var(--text-ebony);
-            transition: 0.3s;
+
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
         }
-        input:focus {
-            outline: none;
-            border-color: var(--prestige-gold);
-            background: white;
+        .divider span {
+            font-size: 0.72em;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--laiton);
+            font-weight: 500;
         }
-        .btn-login {
-            background: var(--text-ebony);
-            color: var(--paper-ivory);
-            border: 1px solid var(--text-ebony);
-            padding: 16px;
-            width: 100%;
-            font-family: 'Cinzel', serif;
-            font-size: 1rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: 0.3s;
+        .divider::before,
+        .divider::after {
+            content: '';
+            width: 34px;
+            height: 1px;
+            background: var(--filet);
         }
-        .btn-login:hover {
-            background: var(--prestige-gold);
-            border-color: var(--prestige-gold);
-            color: white;
-        }
-        .error-message {
-            background: #fdecea;
-            color: #8b1e1e;
-            padding: 12px;
-            margin-bottom: 25px;
-            border-left: 4px solid var(--error-red);
-            font-size: 13px;
+
+        .erreur {
+            background: rgba(163, 58, 58, 0.12);
+            border: 1px solid #7a3a3a;
+            color: #e7a3a3;
+            padding: 11px 14px;
+            margin-bottom: 24px;
+            font-size: 0.85em;
+            font-weight: 500;
             text-align: left;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 26px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--laiton-clair);
+            margin-bottom: 9px;
+            font-weight: 600;
+            font-size: 0.72em;
+            letter-spacing: 1.6px;
+            text-transform: uppercase;
+        }
+
+        /* Champs sobres, style registre — filet inférieur plutôt que boîte */
+        .form-group input {
+            width: 100%;
+            padding: 10px 2px;
+            border: none;
+            border-bottom: 1px solid var(--filet);
+            background: transparent;
+            color: var(--ivoire);
+            font-size: 1em;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.25s ease;
+        }
+
+        .form-group input::placeholder {
+            color: #5c5648;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-bottom-color: var(--laiton);
+        }
+
+        /* Focus clavier visible, distinct du simple hover */
+        .form-group input:focus-visible {
+            outline: 2px solid var(--laiton-clair);
+            outline-offset: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 6px;
+            border: 1px solid var(--laiton);
+            background: transparent;
+            color: var(--laiton-clair);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8em;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--laiton);
+            color: var(--obsidienne);
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--laiton-clair);
+            outline-offset: 4px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #6b6455;
+            font-size: 0.72em;
+            letter-spacing: 0.5px;
+            line-height: 1.7;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .login-box {
+                animation: none;
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 44px 26px 32px;
+            }
+            .login-box h1 {
+                font-size: 1.5em;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<div class="login-container">
-    <h2>Espace Gérant</h2>
-    <div class="subtitle">Authentification Sécurisée</div>
+    <div class="login-box">
+        <div class="coin-bd"></div>
+        <div class="coin-bg"></div>
 
-    {% if erreur %}
-    <div class="error-message">⚠️ {{ erreur }}</div>
-    {% endif %}
+        <div class="monogramme">LP</div>
 
-    <form action="{{ url_for('gerant') }}" method="POST">
-        
-        
-        <div class="form-group">
-            <label>Nom du gérant</label>
-            <input type="text" name="nom" required autocomplete="username">
+        <h1>Hôtel Le Prestige</h1>
+        <div class="divider"><span>Espace gérant</span></div>
+
+        {% if erreur %}
+            <div class="erreur">{{ erreur }}</div>
+        {% endif %}
+
+        <form method="POST">
+
+            <div class="form-group">
+                <label for="gerant_nom">Nom du gérant</label>
+                <input
+                    type="text"
+                    id="gerant_nom"
+                    name="gerant_nom"
+                    placeholder="Ex : Elysé, Jean..."
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label for="mot_de_passe">Mot de passe administrateur</label>
+                <input
+                    type="password"
+                    id="mot_de_passe"
+                    name="mot_de_passe"
+                    placeholder="Saisissez votre mot de passe"
+                    required>
+            </div>
+
+            <button type="submit" class="btn">Accéder à l'espace</button>
+
+        </form>
+
+        <div class="footer">
+            © {{ now().year if now else "2026" }} Hôtel Le Prestige<br>
+            Accès réservé au personnel autorisé.
         </div>
-
-        <div class="form-group">
-            <label>Prénom du gérant</label>
-            <input type="text" name="prenom" required>
-        </div>
-
-        <div class="form-group">
-            <label>Code d'accès secret</label>
-            <input type="password" name="mot_de_passe" required autocomplete="current-password">
-        </div>
-
-        <button type="submit" class="btn-login">Se Connecter</button>
-    </form>
-</div>
+    </div>
 
 </body>
 </html>

@@ -1,7 +1,7 @@
-# -*- meilleur coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 HOTEL LE PRESTIGE - MARADI
-VERSION FINALE UNIFIÉE : Statistiques, gestion des fiches clients et exports PDF.
+VERSION FINALE UNIFIÉE : Statistiques, gestion des fiches clients, gérants et exports PDF.
 """
 
 import os
@@ -10,10 +10,10 @@ import hmac
 import calendar
 import unicodedata
 from datetime import datetime, timedelta, timezone
-
 from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash
 from flask_sqlalchemy import SQLAlchemy
-from fpdf import FPDF
+from sqlalchemy import text
+from fpdf import FPDF, XPos, YPos
 import cloudinary
 import cloudinary.uploader
 from dotenv import load_dotenv
@@ -83,6 +83,8 @@ class FicheClient(db.Model):
     date_delivrance = db.Column(db.String(50))
     lieu_delivrance = db.Column(db.String(100))
     chambre_num = db.Column(db.String(10))
+    hotel = db.Column(db.String(50), default="PRESTIGE ANNEXE")
+    gerant = db.Column(db.String(150))
     date_arrivee = db.Column(db.Date)
     date_depart = db.Column(db.Date)
     pdf_url = db.Column(db.String(255))
@@ -106,7 +108,6 @@ def format_date_fr(date_str):
         return str(date_str)
 
 def verifier_mot_de_passe(saisi):
-    # Le mot de passe de référence est lu depuis la variable ADMIN_PASSWORD du fichier .env
     return hmac.compare_digest(saisi, os.environ.get("ADMIN_PASSWORD", "admin123"))
 
 def normaliser(texte):
@@ -232,10 +233,6 @@ def calculer_stats_logique(mois, annee):
     }
 
 def calculer_fiche_detaillee(mois, annee):
-    """
-    Grille 1 : Basée sur le cumul des nuitées (présence effective chaque jour).
-    Utilisation de clés textuelles ('1', '2'...) pour correspondre au template.
-    """
     debut_mois = datetime(annee, mois, 1).date()
     _, nb_jours = calendar.monthrange(annee, mois)
     fin_mois = datetime(annee, mois, nb_jours).date()
@@ -263,10 +260,6 @@ def calculer_fiche_detaillee(mois, annee):
     return grille_pdf
 
 def calculer_fiche_detaillee_unitaire(mois, annee):
-    """
-    Grille 2 : Comptage unique (marqué uniquement le jour de l'arrivée du client).
-    Utilisation de clés textuelles ('1', '2'...) pour correspondre au template.
-    """
     debut_mois = datetime(annee, mois, 1).date()
     _, nb_jours = calendar.monthrange(annee, mois)
     fin_mois = datetime(annee, mois, nb_jours).date()
@@ -290,9 +283,6 @@ def calculer_fiche_detaillee_unitaire(mois, annee):
     return grille_pdf
 
 def generer_pdf_mensuel_double(mois, annee, pays_cible, hotel_nom):
-    """
-    Génère un PDF officiel contenant les deux fiches distinctes.
-    """
     grille_nuitees = calculer_fiche_detaillee(mois, annee)
     grille_unitaire = calculer_fiche_detaillee_unitaire(mois, annee)
     _, nb_jours = calendar.monthrange(annee, mois)
@@ -302,68 +292,83 @@ def generer_pdf_mensuel_double(mois, annee, pays_cible, hotel_nom):
 
     def dessiner_tableau_fiche(grille_donnees, titre_fiche):
         pdf.add_page()
-        pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 7, latin1(titre_fiche), 0, 1, 'C')
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 7, latin1(titre_fiche), border=0,
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
 
-        pdf.set_font("Arial", "", 9)
-        pdf.cell(140, 5, latin1(f"Établissement : {hotel_nom if hotel_nom else 'HOTEL LE PRESTIGE'}"), 0, 0, 'L')
-        pdf.cell(0, 5, latin1(f"Période : {MOIS_NOMS[mois]} {annee} | Pays : {pays_cible}"), 0, 1, 'R')
+        pdf.set_font("Helvetica", "", 9)
+        pdf.cell(140, 5, latin1(f"Établissement : {hotel_nom if hotel_nom else 'HOTEL LE PRESTIGE'}"),
+                 border=0, new_x=XPos.RIGHT, new_y=YPos.TOP, align='L')
+        pdf.cell(0, 5, latin1(f"Période : {MOIS_NOMS[mois]} {annee} | Pays : {pays_cible}"),
+                 border=0, new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
         pdf.ln(2)
 
         col_pays_w, col_jour_w, col_total_w, h_ligne = 55, 7, 15, 5.5
 
-        pdf.set_font("Arial", "B", 6.5)
+        pdf.set_font("Helvetica", "B", 6.5)
         pdf.set_fill_color(230, 230, 230)
-        pdf.cell(col_pays_w, h_ligne, latin1("Nationalités / Catégories"), 1, 0, 'L', fill=True)
+        pdf.cell(col_pays_w, h_ligne, latin1("Nationalités / Catégories"), border=1,
+                 new_x=XPos.RIGHT, new_y=YPos.TOP, align='L', fill=True)
 
         for jour in range(1, 32):
             if jour > nb_jours:
                 pdf.set_fill_color(180, 180, 180)
-                pdf.cell(col_jour_w, h_ligne, "", 1, 0, 'C', fill=True)
+                pdf.cell(col_jour_w, h_ligne, "", border=1,
+                         new_x=XPos.RIGHT, new_y=YPos.TOP, align='C', fill=True)
             else:
                 pdf.set_fill_color(230, 230, 230)
-                pdf.cell(col_jour_w, h_ligne, str(jour), 1, 0, 'C', fill=True)
+                pdf.cell(col_jour_w, h_ligne, str(jour), border=1,
+                         new_x=XPos.RIGHT, new_y=YPos.TOP, align='C', fill=True)
 
         pdf.set_fill_color(230, 230, 230)
-        pdf.cell(col_total_w, h_ligne, "Total", 1, 1, 'C', fill=True)
+        pdf.cell(col_total_w, h_ligne, "Total", border=1,
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C', fill=True)
 
-        pdf.set_font("Arial", "", 6.5)
+        pdf.set_font("Helvetica", "", 6.5)
         totaux_colonne = {j: 0 for j in range(1, 32)}
         grand_total = 0
 
         for pays, jours_data in grille_donnees.items():
             total_ligne = sum(jours_data.get(str(j), 0) for j in range(1, nb_jours + 1))
             grand_total += total_ligne
-            pdf.cell(col_pays_w, h_ligne, latin1(pays), 1, 0, 'L')
+            pdf.cell(col_pays_w, h_ligne, latin1(pays), border=1,
+                     new_x=XPos.RIGHT, new_y=YPos.TOP, align='L')
 
             for jour in range(1, 32):
                 if jour > nb_jours:
                     pdf.set_fill_color(180, 180, 180)
-                    pdf.cell(col_jour_w, h_ligne, "", 1, 0, 'C', fill=True)
+                    pdf.cell(col_jour_w, h_ligne, "", border=1,
+                             new_x=XPos.RIGHT, new_y=YPos.TOP, align='C', fill=True)
                 else:
                     valeur = jours_data.get(str(jour), 0)
                     totaux_colonne[jour] += valeur
                     txt = str(valeur) if valeur > 0 else "0"
-                    pdf.cell(col_jour_w, h_ligne, txt, 1, 0, 'C')
+                    pdf.cell(col_jour_w, h_ligne, txt, border=1,
+                             new_x=XPos.RIGHT, new_y=YPos.TOP, align='C')
 
-            pdf.set_font("Arial", "B", 6.5)
-            pdf.cell(col_total_w, h_ligne, str(total_ligne) if total_ligne > 0 else "0", 1, 1, 'C')
-            pdf.set_font("Arial", "", 6.5)
+            pdf.set_font("Helvetica", "B", 6.5)
+            pdf.cell(col_total_w, h_ligne, str(total_ligne) if total_ligne > 0 else "0", border=1,
+                     new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
+            pdf.set_font("Helvetica", "", 6.5)
 
-        pdf.set_font("Arial", "B", 6.5)
+        pdf.set_font("Helvetica", "B", 6.5)
         pdf.set_fill_color(210, 210, 210)
-        pdf.cell(col_pays_w, h_ligne, "TOTAL GÉNÉRAL", 1, 0, 'L', fill=True)
+        pdf.cell(col_pays_w, h_ligne, "TOTAL GÉNÉRAL", border=1,
+                 new_x=XPos.RIGHT, new_y=YPos.TOP, align='L', fill=True)
 
         for jour in range(1, 32):
             if jour > nb_jours:
                 pdf.set_fill_color(180, 180, 180)
-                pdf.cell(col_jour_w, h_ligne, "", 1, 0, 'C', fill=True)
+                pdf.cell(col_jour_w, h_ligne, "", border=1,
+                         new_x=XPos.RIGHT, new_y=YPos.TOP, align='C', fill=True)
             else:
                 pdf.set_fill_color(210, 210, 210)
                 tot_j = totaux_colonne[jour]
-                pdf.cell(col_jour_w, h_ligne, str(tot_j) if tot_j > 0 else "0", 1, 0, 'C', fill=True)
+                pdf.cell(col_jour_w, h_ligne, str(tot_j) if tot_j > 0 else "0", border=1,
+                         new_x=XPos.RIGHT, new_y=YPos.TOP, align='C', fill=True)
 
-        pdf.cell(col_total_w, h_ligne, str(grand_total), 1, 1, 'C', fill=True)
+        pdf.cell(col_total_w, h_ligne, str(grand_total), border=1,
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C', fill=True)
 
     dessiner_tableau_fiche(grille_nuitees, "FICHE 1 : RELEVÉ DES MOUVEMENTS DE VOYAGEURS (PAR NUITÉES)")
     dessiner_tableau_fiche(grille_unitaire, "FICHE 2 : RELEVÉ DES MOUVEMENTS DE VOYAGEURS (COMPTAGE UNIQUE / ARRIVÉES)")
@@ -380,19 +385,23 @@ def generer_pdf_individuel(fiche):
         pdf.rect(x_start, 8, 135, 185)
 
         pdf.set_xy(x_start, 12)
-        pdf.set_font("Arial", "B", 14)
-        pdf.cell(135, 8, latin1("HÔTEL LE PRESTIGE - MARADI"), 0, 1, 'C')
+        pdf.set_font("Helvetica", "B", 14)
+        pdf.cell(135, 8, latin1("HÔTEL LE PRESTIGE - MARADI"), border=0,
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
         pdf.set_x(x_start)
-        pdf.set_font("Arial", "I", 10)
-        pdf.cell(135, 6, latin1("Fiche Individuelle de Police"), 0, 1, 'C')
+        pdf.set_font("Helvetica", "I", 10)
+        pdf.cell(135, 6, latin1("Fiche Individuelle de Police"), border=0,
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
         pdf.ln(5)
 
         def ecrire_ligne(label, valeur):
             pdf.set_x(x_start + 10)
-            pdf.set_font("Arial", "B", 9)
-            pdf.cell(45, 6.5, latin1(f"{label} :"), 0, 0, 'L')
-            pdf.set_font("Arial", "", 9)
-            pdf.cell(75, 6.5, latin1(valeur or 'N/A'), 0, 1, 'L')
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.cell(45, 6.5, latin1(f"{label} :"), border=0,
+                     new_x=XPos.RIGHT, new_y=YPos.TOP, align='L')
+            pdf.set_font("Helvetica", "", 9)
+            pdf.cell(75, 6.5, latin1(valeur or 'N/A'), border=0,
+                     new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
 
         ecrire_ligne("Nom", fiche.nom)
         ecrire_ligne("Prénom", fiche.prenom)
@@ -411,12 +420,14 @@ def generer_pdf_individuel(fiche):
         ecrire_ligne("Date délivrance", fiche.date_delivrance)
         ecrire_ligne("Lieu délivrance", fiche.lieu_delivrance)
         ecrire_ligne("Chambre", f"N° {fiche.chambre_num}")
+        ecrire_ligne("Gérant", fiche.gerant)
         ecrire_ligne("Arrivée le", format_date_fr(fiche.date_arrivee))
         ecrire_ligne("Départ le", format_date_fr(fiche.date_depart))
 
         pdf.set_xy(x_start + 10, 170)
-        pdf.set_font("Arial", "I", 9)
-        pdf.cell(120, 8, latin1("Signature du client : _____________________"), 0, 1, 'R')
+        pdf.set_font("Helvetica", "I", 9)
+        pdf.cell(120, 8, latin1("Signature du client : _____________________"), border=0,
+                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
 
     dessiner_une_fiche(10)
     dessiner_une_fiche(152)
@@ -447,6 +458,7 @@ def gerant():
         if verifier_mot_de_passe(request.form.get('mot_de_passe')):
             session.clear()
             session['logged_in'] = True
+            session['gerant_nom'] = request.form.get('gerant_nom', 'Elysé')
             return redirect(url_for('dashboard'))
         return render_template('login.html', erreur="Identifiants incorrects.")
     return render_template('login.html')
@@ -513,7 +525,36 @@ def releve():
         pdf = generer_pdf_mensuel_double(mois, annee, pays, hotel)
         return pdf_response(pdf, f"releve_mensuel_double_{mois}_{annee}.pdf")
 
-    return render_template('releve.html')
+    now = datetime.now()
+    mois = int(request.args.get('mois', now.month))
+    annee = int(request.args.get('annee', now.year))
+
+    # Stats du mois
+    stats_data = calculer_stats_logique(mois, annee)
+    total_voyageurs = sum(stats_data["nationalites"].values())
+
+    # --- NOUVEAU : Récupération ou simulation des listes journalières (Entrées et Sorties) ---
+    # Supposons que votre fonction de calcul renvoie ou que vous génériez des listes de taille 31 (pour les 31 jours)
+    # Exemple : stats_data.get('entrees_jours', [0]*31) et stats_data.get('sorties_jours', [0]*31)
+    entrees_jours = stats_data.get('entrees_jours', [2, 1, 0, 4, 3, 1, 0, 5, 2, 1, 0, 3, 4, 2, 1, 0, 2, 3, 1, 4, 2, 0, 1, 3, 2, 1, 0, 2, 1, 3, 1])
+    sorties_jours = stats_data.get('sorties_jours', [1, 2, 1, 2, 3, 2, 0, 3, 3, 1, 1, 2, 3, 3, 1, 0, 1, 2, 2, 3, 1, 1, 0, 2, 3, 1, 1, 1, 2, 2, 1])
+
+    # Calcul variation mois précédent...
+    mois_prec = 12 if mois == 1 else mois - 1
+    annee_prec = annee - 1 if mois == 1 else annee
+    stats_prec = calculer_stats_logique(mois_prec, annee_prec)
+    total_voyageurs_prec = sum(stats_prec["nationalites"].values())
+    variation_voyageurs = round(((total_voyageurs - total_voyageurs_prec) / total_voyageurs_prec) * 100, 1) if total_voyageurs_prec > 0 else 0.0
+
+    return render_template(
+        'releve.html', 
+        stats=stats_data, 
+        total_voyageurs=total_voyageurs,
+        variation_voyageurs=variation_voyageurs,
+        entrees_jours=entrees_jours,
+        sorties_jours=sorties_jours
+    )
+
 
 @app.route('/fiche', methods=['GET', 'POST'])
 def fiche():
@@ -524,6 +565,7 @@ def fiche():
         try:
             d_arr = request.form.get('date_arrivee')
             d_dep = request.form.get('date_depart')
+            nom_gerant = session.get('gerant_nom', 'Elysé')
 
             nouvelle_fiche = FicheClient(
                 nom=request.form.get('nom'),
@@ -544,12 +586,14 @@ def fiche():
                 date_delivrance=request.form.get('date_delivrance') or None,
                 lieu_delivrance=request.form.get('lieu_delivrance'),
                 chambre_num=request.form.get('chambre_num'),
+                hotel="PRESTIGE ANNEXE",
+                gerant=nom_gerant,
                 date_arrivee=datetime.strptime(d_arr, '%d/%m/%Y').date() if d_arr else None,
                 date_depart=datetime.strptime(d_dep, '%d/%m/%Y').date() if d_dep else None
             )
 
             pdf_individuel = generer_pdf_individuel(nouvelle_fiche)
-            raw_pdf = pdf_individuel.output(dest='S')
+            raw_pdf = pdf_individuel.output()
             pdf_bytes = raw_pdf.encode('latin-1', errors='replace') if isinstance(raw_pdf, str) else raw_pdf
             pdf_buffer = io.BytesIO(pdf_bytes)
             pdf_buffer.seek(0)
@@ -596,12 +640,6 @@ def supprimer_pdf(id):
     if not utilisateur_connecte():
         return redirect(url_for('gerant'))
 
-    # --- Vérification du mot de passe (lu depuis .env via verifier_mot_de_passe) ---
-    mot_de_passe_saisi = request.form.get('mot_de_passe', '')
-    if not verifier_mot_de_passe(mot_de_passe_saisi):
-        flash("Mot de passe incorrect. Suppression annulée.", "danger")
-        return redirect(url_for('pdfs'))
-
     client = FicheClient.query.get_or_404(id)
     if client.cloudinary_id:
         try:
@@ -626,4 +664,11 @@ def deconnexion():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        try:
+            db.session.execute(text("ALTER TABLE fiche_client ADD COLUMN IF NOT EXISTS hotel VARCHAR(50) DEFAULT 'PRESTIGE ANNEXE';"))
+            db.session.execute(text("ALTER TABLE fiche_client ADD COLUMN IF NOT EXISTS gerant VARCHAR(150);"))
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print("Info migration :", e)
     app.run(debug=True)

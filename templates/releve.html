@@ -2,410 +2,607 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Rapport & Fiche des Arrivées - {{ stats.mois_nom }} {{ stats.annee }}</title>
+    <title>Tableau de Bord Analytique - Hôtel Le Prestige</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Inclusion de Google Fonts (Cinzel & Montserrat) et Chart.js -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Styles de base - Style Administratif Épuré */
-        body { font-family: 'Arial', 'Times New Roman', sans-serif; line-height: 1.2; color: #000; background-color: #f4f7f6; margin: 0; padding: 0; }
-        .container { max-width: 1300px; margin: 10px auto; background: white; padding: 20px; border-radius: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        
-        h1 { font-size: 20px; color: #000; text-align: center; margin: 0; padding-bottom: 5px; border-bottom: 2px solid #000; }
-        h2 { font-size: 16px; color: #000; text-align: center; margin: 5px 0 15px 0; }
-        h3 { font-size: 14px; color: #000; border-left: 4px solid #000; padding-left: 8px; margin: 20px 0 8px 0; background: #f9f9f9; text-transform: uppercase; font-weight: bold; }
-        
-        /* Tableaux des parties 1, 2 et 3 */
-        table.stats-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px; }
-        table.stats-table th, table.stats-table td { border: 1px solid #000; padding: 6px 10px; text-align: left; }
-        table.stats-table th { background-color: #f2f2f2; color: #000; font-weight: bold; }
-        .highlight { font-weight: bold; color: #000; }
-        
-        .footer { font-size: 11px; margin-top: 25px; text-align: center; color: #555; border-top: 1px solid #000; padding-top: 10px; }
-        .btn-print { background: #000; color: white; padding: 8px 15px; border: 1px solid #000; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-print:hover { background: #333; }
-        .nav-bar { background: #fff; padding: 10px; margin-bottom: 10px; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
-
-        /* ==========================================
-           STRUCTURE STRICTE DU FORMULAIRE NIGER (PARTIE 4)
-           ========================================== */
-        .fiche-officielle-section {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px dashed #000;
-            background: #fff;
-        }
-        
-        /* Bandeau supérieur horizontal */
-        .ministere-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #000;
-            padding: 10px;
-            background: #fff;
-            margin-bottom: 10px;
-        }
-        .ministere-titre {
-            font-weight: bold;
-            font-size: 13px;
-            text-align: left;
-            text-transform: uppercase;
-        }
-        .ministere-champs {
-            display: flex;
-            gap: 15px;
-            font-size: 12px;
-        }
-        .champ-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .champ-box {
-            border: 1px solid #000;
-            padding: 2px 6px;
-            background: #fff;
-            min-width: 45px;
-            text-align: center;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        /* Titre principal sur toute la largeur */
-        .titre-formulaire-officiel {
-            font-size: 13px;
-            font-weight: bold;
-            text-align: center;
-            border: 1px solid #000;
-            background: #f2f2f2;
-            padding: 8px;
-            margin-bottom: 10px;
-            color: #000;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Conteneur pour le défilement horizontal sur écran */
-        .table-responsive-grille {
-            width: 100%;
-            overflow-x: auto;
-            border: 1px solid #000;
-        }
-        
-        /* Grille Nationale du Niger */
-        .grille-niger {
-            width: 100%;
-            min-width: 1250px; /* Force les 31 colonnes à garder leur taille sans s'écraser */
-            border-collapse: collapse;
-            background: #fff;
-        }
-        .grille-niger th, .grille-niger td {
-            border: 1px solid #000 !important;
-            padding: 4px 0;
-            font-size: 11px;
-            color: #000;
-            height: 22px;
-            box-sizing: border-box;
-        }
-        .grille-niger th {
-            background-color: #f2f2f2 !important;
-            text-align: center;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        
-        /* Dimensions strictes demandées */
-        .col-pays { width: 260px !important; min-width: 260px !important; max-width: 260px !important; text-align: left; padding-left: 6px !important; font-weight: normal; }
-        .col-jour { width: 26px !important; min-width: 26px !important; max-width: 26px !important; text-align: center; }
-        .col-total { width: 85px !important; min-width: 85px !important; max-width: 85px !important; text-align: center; font-weight: bold; background: #f9f9f9; }
-        
-        /* Saisie des nombres (style écriture manuelle bleue sur fond transparent) */
-        .grille-niger input[type="number"] {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: transparent;
-            text-align: center;
-            font-size: 11px;
-            font-family: 'Arial', sans-serif;
-            color: #0056b3; /* Effet stylo bleu pour la saisie */
-            font-weight: bold;
+        body {
+            background-color: #e8e2d6;
+            background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+            font-family: 'Montserrat', sans-serif;
+            color: #2c2c2c;
             margin: 0;
             padding: 0;
-            -moz-appearance: textfield;
         }
-        .grille-niger input[type="number"]:focus {
-            background-color: #e8f4fd;
-            outline: none;
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
-        .grille-niger input[type="number"]::-webkit-outer-spin-button,
-        .grille-niger input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        .header-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header-section h1 {
+            font-family: 'Cinzel', serif;
+            color: #2c2c2c;
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        .header-section .subtitle {
+            color: #555;
+            font-size: 1.1em;
+            font-weight: 500;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .nav-links {
+            margin-bottom: 25px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-secondary, .btn-print {
+            text-decoration: none;
+            color: #2c2c2c;
+            font-weight: 600;
+            background: #fdfaf1;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: inline-block;
+            transition: all 0.3s;
+            border: 1px solid #c5a059;
+            cursor: pointer;
+            font-size: 1em;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-secondary:hover, .btn-print:hover {
+            background: #c5a059;
+            color: #ffffff;
+        }
+        .btn-print {
+            background-color: #2c2c2c;
+            color: white;
+            border: 1px solid #2c2c2c;
+        }
+        .btn-print:hover {
+            background-color: #c5a059;
+            border-color: #c5a059;
+            color: #ffffff;
+        }
+        /* Filtres */
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            background: #fdfaf1;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(197, 160, 89, 0.3);
+            margin-bottom: 30px;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 180px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c2c2c;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dcd6cd;
+            border-radius: 8px;
+            font-size: 1em;
+            background-color: #ffffff;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-action {
+            padding: 12px 30px;
+            background-color: #2c2c2c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+            height: 45px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-action:hover {
+            background-color: #c5a059;
         }
 
-        /* ==========================================
-           GESTION DE L'IMPRESSION SUR DEUX PAGES
-           ========================================== */
+        /* Section Graphiques Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .section-box {
+            background: #fdfaf1;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid #c5a059;
+            margin-bottom: 30px;
+        }
+        .section-box h2 {
+            font-family: 'Cinzel', serif;
+            color: #2c2c2c;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #eae5db;
+            padding-bottom: 10px;
+        }
+        .chart-container {
+            position: relative;
+            margin: auto;
+            height: 320px;
+            width: 100%;
+        }
+        /* Bloc de conclusion / interprétation, réutilisé sous chaque diagramme */
+        .conclusion-box {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background-color: #f4efe6;
+            border-left: 4px solid #c5a059;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.93em;
+            color: #333;
+        }
+        .conclusion-box strong.conclusion-title {
+            color: #2c2c2c;
+            display: block;
+            margin-bottom: 6px;
+            font-size: 1.02em;
+            font-family: 'Cinzel', serif;
+        }
+        .conclusion-box p {
+            margin: 0;
+            line-height: 1.6;
+        }
+        /* Tableau détaillé */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .data-table th, .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eae5db;
+        }
+        .data-table th {
+            background-color: #f4efe6;
+            color: #2c2c2c;
+            font-weight: 700;
+            font-family: 'Cinzel', serif;
+        }
+        .data-table tr:hover {
+            background-color: #f4efe6;
+        }
+        /* Export Card */
+        .export-card {
+            background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(44, 44, 44, 0.2);
+            border: 1px solid #c5a059;
+        }
+        .export-card h3 {
+            font-family: 'Cinzel', serif;
+            margin-top: 0;
+            font-size: 1.6em;
+            color: #c5a059;
+        }
+        .btn-download {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 14px 35px;
+            background-color: #c5a059;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 1.05em;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-download:hover {
+            transform: scale(1.05);
+            background-color: #b38f48;
+        }
+
+        /* CONFIGURATION POUR L'IMPRESSION PROPRE */
         @media print {
-            body { background: white; color: #000; }
-            .no-print { display: none !important; }
-            .container { width: 100%; margin: 0; padding: 0; box-shadow: none; max-width: 100%; }
-            
-            /* Les 3 premières parties restent en portrait */
-            table.stats-table { page-break-inside: avoid; }
-            
-            /* SAUT DE PAGE ET BASCULEMENT FORMAT PAYSAGE POUR LA GRILLE NIGER */
-            .fiche-officielle-section {
-                page-break-before: always; 
-                margin-top: 0;
-                padding-top: 0;
-                border-top: none;
-            }
-            
-            @page {
-                size: A4 portrait;
-                margin: 1cm;
-            }
-            
-            /* Assignation du format Paysage (Landscape) pour le formulaire officiel */
-            @page officielleLandscape {
-                size: A4 landscape;
-                margin: 0.6cm 0.4cm;
-            }
-            .fiche-officielle-section {
-                page: officielleLandscape;
-            }
-            
-            /* Rendu propre des inputs à l'impression */
-            .grille-niger input[type="number"] {
-                color: #0056b3 !important; /* Préserve la couleur bleue du stylo */
-            }
-            .grille-niger th {
-                background-color: #e6e6e6 !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+            body { background-color: #fff; background-image: none; }
+            .nav-links, .filter-form, .export-card, .btn-action { display: none !important; }
+            .dashboard-container { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+            .section-box { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; background: #fff !important; }
         }
     </style>
 </head>
 <body>
+    <div class="dashboard-container">
+        <header class="header-section">
+            <h1>HÔTEL LE PRESTIGE</h1>
+            <p class="subtitle">Tableau de Bord Analytique & Suivi Financier ({{ stats.mois_nom }} {{ stats.annee }})</p>
+        </header>
 
-    <!-- BARRE DE NAVIGATION ET FILTRES (INVISIBLE À L'IMPRESSION) -->
-    <div class="no-print nav-bar">
-        <div style="display: flex; gap: 15px;">
-            <a href="{{ url_for('dashboard') }}" style="color: #000; font-weight: bold; text-decoration: none;">⬅ DASHBOARD</a>
-            <a href="{{ url_for('releve') }}" style="color: #000; font-weight: bold; text-decoration: none;">📋 RELEVÉ</a>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="btn-secondary">⬅️ Retour au Tableau de Bord</a>
+            <button onclick="window.print()" class="btn-print">🖨️ Imprimer le Rapport</button>
         </div>
-        <form action="{{ url_for('stats') }}" method="get" style="display: flex; gap: 5px;">
-            <select name="mois">
-                <option value="1" {% if mois == 1 %}selected{% endif %}>Janvier</option>
-                <option value="2" {% if mois == 2 %}selected{% endif %}>Février</option>
-                <option value="3" {% if mois == 3 %}selected{% endif %}>Mars</option>
-                <option value="4" {% if mois == 4 %}selected{% endif %}>Avril</option>
-                <option value="5" {% if mois == 5 %}selected{% endif %}>Mai</option>
-                <option value="6" {% if mois == 6 %}selected{% endif %}>Juin</option>
-                <option value="7" {% if mois == 7 %}selected{% endif %}>Juillet</option>
-                <option value="8" {% if mois == 8 %}selected{% endif %}>Août</option>
-                <option value="9" {% if mois == 9 %}selected{% endif %}>Septembre</option>
-                <option value="10" {% if mois == 10 %}selected{% endif %}>Octobre</option>
-                <option value="11" {% if mois == 11 %}selected{% endif %}>Novembre</option>
-                <option value="12" {% if mois == 12 %}selected{% endif %}>Décembre</option>
-            </select>
-            <select name="annee">
-                {% for a in range(2025, 2035) %}
-                <option value="{{ a }}" {% if a == annee %}selected{% endif %}>{{ a }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" style="cursor: pointer; background: #000; color: #fff; border: 1px solid #000; font-weight: bold;">FILTRER</button>
+
+        <!-- Filtres de Période -->
+        <form method="GET" action="{{ url_for('releve') }}" class="filter-form">
+            <div class="filter-group">
+                <label for="mois">Mois :</label>
+                <select id="mois" name="mois">
+                    {% for m_idx in range(1, 13) %}
+                        <option value="{{ m_idx }}" {% if m_idx == stats.mois_num %}selected{% endif %}>
+                            {% if m_idx == 1 %}Janvier{% elif m_idx == 2 %}Février{% elif m_idx == 3 %}Mars{% elif m_idx == 4 %}Avril{% elif m_idx == 5 %}Mai{% elif m_idx == 6 %}Juin{% elif m_idx == 7 %}Juillet{% elif m_idx == 8 %}Août{% elif m_idx == 9 %}Septembre{% elif m_idx == 10 %}Octobre{% elif m_idx == 11 %}Novembre{% elif m_idx == 12 %}Décembre{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="annee">Année :</label>
+                <input type="number" id="annee" name="annee" value="{{ stats.annee }}" min="2024" max="2035">
+            </div>
+            <button type="submit" class="btn-action">🔍 Filtrer les Données</button>
         </form>
-    </div>
 
-    <div class="container">
-        <!-- PAGE 1 : RAPPORT MANAGER INTERNE (PORTRAIT) -->
-        <h1>HOTEL LE PRESTIGE - MARADI</h1>
-        <h2>RAPPORT DE STATISTIQUES MENSUELLES</h2>
-        <p style="text-align: center; font-weight: bold; margin: 4px 0; font-size: 14px;">Période : {{ stats.mois_nom }} {{ stats.annee }}</p>
+        <!-- Section 1 : Graphique de Suivi Financier (Chiffre d'Affaires vs Salaires vs Charges) -->
+        <div class="section-box">
+            <h2>📈 Suivi Financier : Chiffre d'Affaires vs Salaires (330 000F) & Charges (255 000F)</h2>
+            <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Évolution comparative sur l'année pour analyser la rentabilité mensuelle.</p>
+            <div class="chart-container" style="height: 380px;">
+                <canvas id="financialChart"></canvas>
+            </div>
 
-        <h3>1. Ressources Humaines & Capacité</h3>
-        <table class="stats-table">
-            <tr><td style="width: 70%;">Employés Permanents</td><td>00</td></tr>
-            <tr><td>Employés Temporaires</td><td>06</td></tr>
-            <tr><td>Chambres Offertes</td><td>09</td></tr>
-            <tr>
-                <td>Chambres Occupées</td>
-                <td class="highlight">{{ "%02d"|format(stats.chambres_occupees) }}</td>
-            </tr>
-        </table>
+            <!-- Conclusion & Interprétation Financière -->
+            {% set total_charges = 330000 + 255000 %}
+            {% set ecart = stats.chiffre_affaires - total_charges %}
+            <div class="conclusion-box">
+                <strong class="conclusion-title">💡 Interprétation & Analyse Financière ({{ stats.mois_nom }} {{ stats.annee }}) :</strong>
+                <p>
+                    Pour un total de charges fixes et opérationnelles estimées à <strong>585 000 FCFA</strong> (Salaires : 330 000 F + Courant, eau & achats : 255 000 F), 
+                    votre Chiffre d'Affaires du mois s'élève à <strong>{{ "{:,}".format(stats.chiffre_affaires).replace(',', ' ') }} FCFA</strong>. 
+                    {% if ecart >= 0 %}
+                        L'activité dégage un excédent net de <strong style="color: #00b894;">+{{ "{:,}".format(ecart).replace(',', ' ') }} FCFA</strong>. Le seuil de rentabilité est atteint et dépassé avec succès.
+                    {% else %}
+                        Il en ressort un écart (déficit temporaire) de <strong style="color: #d63031;">{{ "{:,}".format(ecart).replace(',', ' ') }} FCFA</strong> par rapport au seuil de rentabilité mensuel. Une attention particulière sur le taux d'occupation ou l'optimisation des dépenses est recommandée pour les mois à venir.
+                    {% endif %}
+                </p>
+            </div>
+        </div>
 
-        <h3>2. Fréquentation & Exploitation</h3>
-        <table class="stats-table">
-            <thead>
-                <tr>
-                    <th style="width: 70%;">Indicateurs de Performance</th>
-                    <th>Valeurs</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Nombre de clients - Début de mois (01 au 20)</td>
-                    <td class="highlight">{{ stats.clients_debut }}</td>
-                </tr>
-                <tr>
-                    <td>Nombre de clients - Fin de mois (21 au {{ stats.nb_jours }})</td>
-                    <td class="highlight">{{ stats.clients_fin }}</td>
-                </tr>
-                <tr>
-                    <td>Total des Nuitées du mois</td>
-                    <td>{{ stats.total_nuitees }} nuitée(s)</td>
-                </tr>
-                <tr>
-                    <td>Chiffre d'Affaires Mensuel (Hébergement)</td>
-                    <td class="highlight">{{ "{:,.0f}".format(stats.chiffre_affaires).replace(',', ' ') }} FCFA</td>
-                </tr>
-                <tr>
-                    <td>Taux d'Occupation moyen</td>
-                    <td>{{ stats.taux_occupation }} %</td>
-                </tr>
-            </tbody>
-        </table>
+        <!-- Section 2 Graphiques : Répartition & Rotation -->
+        {% if total_voyageurs > 0 %}
+        <div class="charts-grid">
+            <div class="section-box">
+                <h2>📊 Répartition par Nationalité (Anneau)</h2>
+                <div class="chart-container">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+            <div class="section-box">
+                <h2>🌐 Analyse en Aires Polaires</h2>
+                <div class="chart-container">
+                    <canvas id="polarChart"></canvas>
+                </div>
+            </div>
+        </div>
 
-        <h3>3. Nationalités</h3>
-        <table class="stats-table">
-            <thead>
-                <tr><th>Pays d'origine</th><th style="width: 100px;">Effectif</th></tr>
-            </thead>
-            <tbody>
-                {% for pays, count in stats.nationalites.items() %}
-                <tr><td>{{ pays }}</td><td>{{ count }}</td></tr>
+        <!-- Conclusion & Interprétation Nationalités (commune aux 2 diagrammes ci-dessus) -->
+        {% set top_nat = stats.nationalites | dictsort(by='value', reverse=true) | first %}
+        {% set top_pct = (top_nat[1] / total_voyageurs * 100) | round(1) %}
+        {% set nb_nationalites = stats.nationalites.values() | select('gt', 0) | list | length %}
+        <div class="conclusion-box" style="margin-top: -10px; margin-bottom: 30px;">
+            <strong class="conclusion-title">💡 Interprétation & Analyse de la Clientèle :</strong>
+            <p>
+                Sur un total de <strong>{{ total_voyageurs }} voyageur(s)</strong> répartis sur <strong>{{ nb_nationalites }} catégorie(s)</strong> de provenance, 
+                <strong>{{ top_nat[0] }}</strong> constitue la clientèle dominante avec <strong>{{ top_nat[1] }} client(s)</strong> (soit <strong>{{ top_pct }} %</strong> du total). 
+                {% if top_pct > 60 %}
+                    La clientèle est fortement concentrée sur cette provenance : une diversification des canaux de réservation pourrait réduire ce risque de dépendance.
                 {% else %}
-                <tr><td colspan="2" style="text-align: center;">Néant</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    La répartition reste relativement diversifiée, ce qui limite la dépendance à une seule origine de clientèle.
+                {% endif %}
+            </p>
+        </div>
 
-
-        <!-- =========================================================================================
-             PAGE 2 : LE FORMULAIRE NATIONAL OFFICIEL DU NIGER (DESSINÉ STRICTEMENT EN PAYSAGE)
-             ========================================================================================= -->
-        <div class="fiche-officielle-section">
-            
-            <!-- En-tête supérieur horizontal -->
-            <div class="ministere-header">
-                <div class="ministere-titre">
-                    MINISTERE DE L'ARTISANAT ET DU TOURISME : DIRECTION DE LA STATISTIQUE
-                </div>
-                <div class="ministere-champs">
-                    <div class="champ-item">Nombre de nuitées : <span class="champ-box" id="grand-total-nuitees">0</span></div>
-                    <div class="champ-item">Hôtel : <span class="champ-box" style="min-width: 70px;">Prestige</span></div>
-                    <div class="champ-item">Catégorie : <span class="champ-box">NC</span></div>
-                    <div class="champ-item">Année : <span class="champ-box">{{ annee }}</span></div>
-                    <div class="champ-item">Mois : <span class="champ-box">{{ "%02d"|format(mois) }}</span></div>
-                </div>
+        <div class="section-box">
+            <h2>🔄 Taux de Rotation : Entrées vs Sorties Journalières</h2>
+            <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">Arrivées et Sorties journalières.</p>
+            <div class="chart-container" style="height: 350px;">
+                <canvas id="rotationChart"></canvas>
             </div>
 
-            <!-- Titre principal -->
-            <div class="titre-formulaire-officiel">
-                FORMULAIRES DE RELEVÉ DES MOUVEMENTS DE VOYAGEURS DANS LES ÉTABLISSEMENTS HÔTELIERS AU NIGER
+            <!-- Conclusion & Interprétation Rotation -->
+            {% set total_entrees = entrees_jours | sum %}
+            {% set total_sorties = sorties_jours | sum %}
+            {% set solde_rotation = total_entrees - total_sorties %}
+            <div class="conclusion-box">
+                <strong class="conclusion-title">💡 Interprétation & Analyse de la Rotation :</strong>
+                <p>
+                    Le mois comptabilise <strong>{{ total_entrees }} entrée(s)</strong> pour <strong>{{ total_sorties }} sortie(s)</strong>. 
+                    {% if solde_rotation > 0 %}
+                        Le solde est positif de <strong style="color: #00b894;">+{{ solde_rotation }}</strong>, traduisant une hausse du nombre de clients hébergés en fin de période.
+                    {% elif solde_rotation < 0 %}
+                        Le solde est négatif de <strong style="color: #d63031;">{{ solde_rotation }}</strong>, traduisant une baisse du nombre de clients hébergés en fin de période.
+                    {% else %}
+                        Le solde est équilibré : le nombre de clients hébergés reste stable sur le mois.
+                    {% endif %}
+                </p>
             </div>
+        </div>
+        {% endif %}
 
-            <!-- Grille complète des 31 jours -->
-            <div class="table-responsive-grille">
-                <table class="grille-niger">
+        <!-- Tableau Détaillé des Flux -->
+        <div class="section-box">
+            <h2>📋 Fichier Récapitulatif Détaillé ({{ stats.mois_nom }} {{ stats.annee }})</h2>
+            {% if total_voyageurs > 0 %}
+                <table class="data-table">
                     <thead>
                         <tr>
-                            <th rowspan="2" class="col-pays">PAYS DE RÉSIDENCE</th>
-                            <th colspan="31">JOURS DU MOIS</th>
-                            <th rowspan="2" class="col-total">NB TOTAL DE NUITÉES PAR PAYS</th>
-                        </tr>
-                        <tr>
-                            {% for jour in range(1, 32) %}
-                            <th class="col-jour">{{ jour }}</th>
-                            {% endfor %}
+                            <th>Nationalité / Catégorie</th>
+                            <th>Nombre de Voyageurs</th>
+                            <th>Part Relative (%)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% set pays_liste = [
-                            'Présidents nationaux', 'Résidents étrangers', "Pays de l'UEMOA", 'Nigeria', 
-                            'CEDEAO hors UEMOA', 'Maghreb', 'Autres pays d\'Afrique', 'France', 
-                            'Allemagne', 'Italie', 'Belgique', 'Espagne', 'Russie', 'Autres pays d\'Europe', 
-                            'USA', 'Canada', 'Autres pays d\'Amérique', 'Japon', 'Chine', 'Inde', 
-                            'Moyen Orient', 'Autres pays d\'Asie', 'Australie', 'Reste du monde', 
-                            'Pays non déclaré'
-                        ] %}
-
-                        {# Lignes des pays à remplir #}
-                        {% for p in pays_liste %}
-                        <tr class="ligne-pays">
-                            <td class="col-pays">{{ p }}</td>
-                            {% for jour in range(1, 32) %}
-                            <td class="col-jour">
-                                <input type="number" min="0" class="input-cell jour-{{ jour }}" data-jour="{{ jour }}" value="0" oninput="calculerTotauxGrille()">
-                            </td>
-                            {% endfor %}
-                            <td class="col-total total-ligne">0</td>
-                        </tr>
+                        {% for pays, count in stats.nationalites.items() %}
+                            {% if count > 0 %}
+                                {% set pct = (count / total_voyageurs * 100) | round(1) %}
+                                <tr>
+                                    <td><strong>{{ pays }}</strong></td>
+                                    <td>{{ count }} client(s)</td>
+                                    <td>{{ pct }} %</td>
+                                </tr>
+                            {% endif %}
                         {% endfor %}
-
-                        {# Ligne officielle finale : Total du monde #}
-                        <tr style="font-weight: bold; background: #f2f2f2;" class="ligne-total-monde">
-                            <td class="col-pays" style="font-weight: bold;">Total du monde</td>
-                            {% for jour in range(1, 32) %}
-                            <td class="col-jour" style="text-align: center; font-weight: bold;">
-                                <span id="total-jour-{{ jour }}">0</span>
-                            </td>
-                            {% endfor %}
-                            <td id="total-general-grille" class="col-total" style="background: #e6e6e6;">0</td>
-                        </tr>
                     </tbody>
                 </table>
-            </div>
+            {% else %}
+                <p style="text-align: center; color: #777; font-style: italic; padding: 20px;">Aucun mouvement de voyageur enregistré pour cette période.</p>
+            {% endif %}
         </div>
 
-        <!-- PIED DE PAGE ET BOUTON ACTION -->
-        <div class="footer">
-            <p style="margin: 2px 0;">Rapport officiel généré électroniquement le <span id="date-generation"></span> - Direction Hôtel Le Prestige</p>
-            <button class="no-print btn-print" onclick="window.print()" style="margin-top: 10px;">🖨 IMPRIMER LA FICHE OFFICIELLE (A4 PAYSAGE)</button>
+        <!-- Section Export PDF Officiel -->
+        <div class="export-card">
+            <h3>📥 Télécharger le Relevé Officiel (Fiches 1 & 2)</h3>
+            <p style="margin-bottom: 20px; opacity: 0.9;">Générez et téléchargez le document officiel complet des mouvements de voyageurs au format PDF pour les autorités.</p>
+            
+            <form method="POST" action="{{ url_for('releve') }}" style="display: inline-block; width: 100%; max-width: 550px;">
+                <input type="hidden" name="mois" value="{{ stats.mois_num }}">
+                <input type="hidden" name="annee" value="{{ stats.annee }}">
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px;">
+                    <input type="text" name="hotel" value="HOTEL LE PRESTIGE" placeholder="Nom établissement" required style="padding: 12px; border-radius: 8px; border: none; flex: 1; min-width: 200px; font-family: 'Montserrat', sans-serif;">
+                    <input type="text" name="pays" value="NIGER" placeholder="Pays ciblé" required style="padding: 12px; border-radius: 8px; border: none; width: 130px; font-family: 'Montserrat', sans-serif;">
+                </div>
+                <button type="submit" class="btn-download">📄 Télécharger le Relevé PDF Officiel ({{ stats.mois_nom }} {{ stats.annee }})</button>
+            </form>
         </div>
     </div>
 
-    <!-- CODE SCRIPT DE CALCUL DYNAMIQUE ET SÉCURISÉ -->
+    <!-- Scripts Chart.js -->
     <script>
-        function calculerTotauxGrille() {
-            // 1. Somme par ligne (par pays de résidence)
-            const lignes = document.querySelectorAll('.ligne-pays');
-            lignes.forEach(ligne => {
-                let totalLigne = 0;
-                const inputs = ligne.querySelectorAll('.input-cell');
-                inputs.forEach(input => {
-                    totalLigne += parseInt(input.value) || 0;
-                });
-                ligne.querySelector('.total-ligne').textContent = totalLigne;
-            });
+        // 1. Graphique de Suivi Financier (CA vs Salaires vs Charges)
+        const monthsLabels = ['Janv', 'Févr', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
+        
+        const caMonthlyData = {{ ca_12_mois | default([0, 0, 0, 0, 0, stats.chiffre_affaires, 0, 0, 0, 0, 0, 0]) | tojson }};
+        const salairesData = Array(12).fill(330000);
+        const chargesData = Array(12).fill(255000);
 
-            // 2. Somme par colonne (Chaque jour du 1 au 31)
-            let totalGeneral = 0;
-            for (let jour = 1; jour <= 31; jour++) {
-                let totalJour = 0;
-                const inputsJour = document.querySelectorAll(`.jour-${jour}`);
-                inputsJour.forEach(input => {
-                    totalJour += parseInt(input.value) || 0;
-                });
-                const cellJour = document.getElementById(`total-jour-${jour}`);
-                if (cellJour) cellJour.textContent = totalJour;
-                totalGeneral += totalJour;
+        const ctxFinancial = document.getElementById('financialChart').getContext('2d');
+        new Chart(ctxFinancial, {
+            type: 'line',
+            data: {
+                labels: monthsLabels,
+                datasets: [
+                    {
+                        label: 'Chiffre d\'Affaires (CA)',
+                        data: caMonthlyData,
+                        borderColor: '#c5a059',
+                        backgroundColor: 'rgba(197, 160, 89, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Salaires (330 000 F)',
+                        data: salairesData,
+                        borderColor: '#d63031',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0
+                    },
+                    {
+                        label: 'Courant, Eau & Achats (255 000 F)',
+                        data: chargesData,
+                        borderColor: '#2c2c2c',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [2, 2],
+                        tension: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + ' FCFA';
+                            }
+                        },
+                        title: { display: true, text: 'Montant en FCFA' }
+                    },
+                    x: {
+                        title: { display: true, text: 'Mois de l\'année' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { size: 12, family: "'Montserrat', sans-serif" } }
+                    }
+                }
             }
+        });
+    </script>
 
-            // 3. Liaison avec le bandeau officiel supérieur et la cellule finale
-            document.getElementById('total-general-grille').textContent = totalGeneral;
-            document.getElementById('grand-total-nuitees').textContent = totalGeneral;
+    {% if total_voyageurs > 0 %}
+    <script>
+        const rawData = {{ stats.nationalites | tojson }};
+        const labels = [];
+        const dataValues = [];
+        
+        for (const [key, val] of Object.entries(rawData)) {
+            if (val > 0) {
+                labels.push(key);
+                dataValues.push(val);
+            }
         }
 
-        // Remplissage automatique de la date du jour
-        const maintenant = new Date();
-        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        document.getElementById('date-generation').textContent = maintenant.toLocaleDateString('fr-FR', options);
-        
-        // Lancement immédiat de la grille
-        calculerTotauxGrille();
+        const customColors = [
+            '#c5a059', '#2c2c2c', '#48dbfb', '#7ed6df', '#0be881', 
+            '#f5cd79', '#f8a5c2', '#63cdda', '#ea8685', '#596275', '#3498db', '#e74c3c',
+            '#e1b12c', '#44bd32', '#009432', '#686de0', '#30336b', '#7f8c8d'
+        ];
+
+        // 2. Graphique en Anneau (Doughnut)
+        const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+        new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: customColors.slice(0, labels.length),
+                    borderWidth: 2,
+                    borderColor: '#fdfaf1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11, family: "'Montserrat', sans-serif" } }
+                    }
+                }
+            }
+        });
+
+        // 3. Graphique en Aires Polaires (Polar Area)
+        const ctxPolar = document.getElementById('polarChart').getContext('2d');
+        new Chart(ctxPolar, {
+            type: 'polarArea',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: customColors.slice(0, labels.length),
+                    borderWidth: 1,
+                    borderColor: '#fdfaf1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11, family: "'Montserrat', sans-serif" } }
+                    }
+                }
+            }
+        });
+
+        // 4. Graphique de Rotation : Entrées vs Sorties
+        const daysLabels = Array.from({length: 31}, (_, i) => i + 1);
+        const entreesData = {{ entrees_jours | tojson }};
+        const sortiesData = {{ sorties_jours | tojson }};
+
+        const ctxRotation = document.getElementById('rotationChart').getContext('2d');
+        new Chart(ctxRotation, {
+            type: 'bar',
+            data: {
+                labels: daysLabels,
+                datasets: [
+                    {
+                        label: '📥 Entrées (Arrivées)',
+                        data: entreesData,
+                        backgroundColor: '#2c2c2c',
+                        borderColor: '#1a1a1a',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: '📤 Sorties (Départs)',
+                        data: sortiesData,
+                        backgroundColor: '#c5a059',
+                        borderColor: '#b38f48',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1 },
+                        title: { display: true, text: 'Nombre de clients' }
+                    },
+                    x: { 
+                        title: { display: true, text: 'Jour du mois' } 
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { size: 12, family: "'Montserrat', sans-serif" } }
+                    }
+                }
+            }
+        });
     </script>
+    {% endif %}
 </body>
 </html>

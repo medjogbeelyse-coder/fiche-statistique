@@ -92,17 +92,6 @@
         .btn-delete { background: #fee2e2; color: #ef4444; padding: 12px; border-radius: 4px; cursor: pointer; border: 1px solid #fecaca; }
         .btn-delete:hover { background: #f87171; color: white; }
         .btn-back { text-decoration: none; color: var(--text-ebony); font-weight: 700; }
-
-        /* Messages flash (mot de passe incorrect, etc.) */
-        .flash-msg {
-            padding: 14px 18px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .flash-danger { background: #fee2e2; color: #b91c1c; border-left: 5px solid #ef4444; }
-        .flash-info { background: #dcfce7; color: #166534; border-left: 5px solid #22c55e; }
     </style>
 </head>
 <body>
@@ -118,21 +107,15 @@
             <a href="{{ url_for('dashboard') }}" class="btn-back">⬅ Dashboard</a>
         </div>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash-msg flash-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <input type="text" id="search" placeholder="Rechercher un nom, une chambre ou une provenance..." onkeyup="filtrer()">
+        <input type="text" id="search" placeholder="Rechercher un nom, une chambre, un gérant ou une provenance..." onkeyup="filtrer()">
 
         <ul id="liste-clients">
             {% for client in clients %}
             <li>
                 <div class="info-main">
-                    <span style="font-size:0.75rem; color:var(--prestige-gold); font-weight:700;">📅 ENREGISTRÉ LE {{ client.date_creation.strftime('%d/%m/%Y') }}</span>
+                    <span style="font-size:0.75rem; color:var(--prestige-gold); font-weight:700;">
+                        👤 {{ client.gerant or 'Gérant non spécifié' }} — 📅 ENREGISTRÉ LE {{ client.date_creation.strftime('%d/%m/%Y') }}
+                    </span>
                     <div>
                         <span class="client-name">{{ client.nom }} {{ client.prenom }}</span>
                         <span class="badge-chambre">Ch. {{ client.chambre_num }}</span>
@@ -141,8 +124,7 @@
                 </div>
                 <div class="btn-group">
                     <a href="{{ client.pdf_url }}" target="_blank" class="view-link">📄 Ouvrir le PDF</a>
-                    <form method="post" action="{{ url_for('supprimer_pdf', id=client.id) }}" onsubmit="return confirmerSuppression(this);">
-                        <input type="hidden" name="mot_de_passe">
+                    <form method="post" action="{{ url_for('supprimer_pdf', id=client.id) }}" onsubmit="return confirm('Supprimer ce dossier ?');">
                         <button type="submit" class="btn-delete" title="Supprimer le dossier">🗑️</button>
                     </form>
                 </div>
@@ -167,13 +149,6 @@
                 let texte = li.textContent.toLowerCase();
                 li.style.display = texte.includes(val) ? "flex" : "none";
             });
-        }
-
-        function confirmerSuppression(form) {
-            const pwd = prompt("Mot de passe pour confirmer la suppression :");
-            if (pwd === null || pwd.trim() === "") return false;
-            form.querySelector('input[name="mot_de_passe"]').value = pwd;
-            return true;
         }
     </script>
 </body>

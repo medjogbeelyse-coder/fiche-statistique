@@ -188,9 +188,22 @@
         /* IMPRESSION INDÉPENDANTE / SÉLECTIVE                          */
         /* ============================================================ */
         @media print {
+
+            /* Page par défaut : PORTRAIT (pages 1 et 2) */
             @page {
+                size: A4 portrait;
+                margin: 8mm;
+            }
+
+            /* Page nommée : PAYSAGE (pages 3 et 4, fiches ministère) */
+            @page fiche-landscape {
                 size: A4 landscape;
                 margin: 4mm;
+            }
+
+            /* Application de la page paysage aux fiches ministère */
+            #page-3, #page-4 {
+                page: fiche-landscape;
             }
 
             html, body {
@@ -233,6 +246,8 @@
                 box-shadow: none !important;
                 border: none !important;
                 margin: 0 !important;
+                height: 100% !important;
+                overflow: hidden !important;
             }
 
             body:not(.print-single) .section-page:last-child {
@@ -293,12 +308,104 @@
             }
 
             table.grille-statistique th.col-total,
-            table.grille-statistique td.col-total {
-                font-size: 8px !important;
-                font-weight: bold !important;
-                color: #000 !important;
-                text-align: center !important;
-            }
+table.grille-statistique td.col-total {
+    font-size: 8px !important;
+    font-weight: bold !important;
+    color: #000 !important;
+    text-align: center !important;
+}
+
+/* ========================================== */
+/* PAGE 1 : toujours sur une seule feuille A4 */
+/* ========================================== */
+
+#page-1 .bloc-management{
+    padding:10mm !important;
+    overflow:hidden !important;
+    height:100% !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:flex-start !important;
+    gap:3mm !important;
+}
+
+#page-1 h1{
+    font-size:20px !important;
+    margin:0 0 3mm 0 !important;
+}
+
+#page-1 h2{
+    font-size:15px !important;
+    margin:0 0 3mm 0 !important;
+}
+
+#page-1 h3{
+    font-size:13px !important;
+    margin:4mm 0 3mm 0 !important;
+}
+
+#page-1 table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:11px !important;
+}
+
+#page-1 th,
+#page-1 td{
+    padding:5px 8px !important;
+    line-height:1.25 !important;
+}
+
+#page-1 tr{
+    page-break-inside:avoid !important;
+}
+
+/* ========================================== */
+/* PAGE 2 : toujours sur une seule feuille A4 */
+/* ========================================== */
+
+#page-2 .bloc-management{
+    padding:10mm !important;
+    overflow:hidden !important;
+    height:100% !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:flex-start !important;
+    gap:3mm !important;
+}
+
+#page-2 h1{
+    font-size:20px !important;
+    margin:0 0 3mm 0 !important;
+}
+
+#page-2 h2{
+    font-size:15px !important;
+    margin:0 0 3mm 0 !important;
+}
+
+#page-2 h3{
+    font-size:13px !important;
+    margin:4mm 0 3mm 0 !important;
+}
+
+#page-2 table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:11px !important;
+}
+
+#page-2 th,
+#page-2 td{
+    padding:5px 8px !important;
+    line-height:1.25 !important;
+}
+
+#page-2 tr{
+    page-break-inside:avoid !important;
+}
+
+} /* ← fermeture de @media print */
         }
     </style>
 </head>
@@ -533,7 +640,7 @@
             </div>
             <div class="container-fiche">
                 <div style="text-align: right; font-weight: bold; font-size: 10px; color: #c0392b; margin-bottom: 2px;">
-                    [ DUPLICATA - ARRIVÉES ]
+                    [  ]
                 </div>
 
                 <div class="header-bandeau">
