@@ -376,61 +376,87 @@ def generer_pdf_mensuel_double(mois, annee, pays_cible, hotel_nom):
     return pdf
 
 def generer_pdf_individuel(fiche):
-    pdf = FPDF(orientation='L', unit='mm', format='A4')
+    pdf = FPDF(orientation='P', unit='mm', format='A4')
     pdf.add_page()
+    pdf.set_auto_page_break(False)
+
+    col_w = 88
+    marge_ext = 8
+    x_gauche = marge_ext
+    x_droite = 210 - marge_ext - col_w
+    x_milieu = 105
+    y_haut = 12
+    y_bas = 285
+    hauteur_totale = y_bas - y_haut
+
+    champs = [
+        ("Nom", fiche.nom), ("Prénom", fiche.prenom), ("Nationalité", fiche.nationalite),
+        ("Date Naiss.", fiche.date_naissance), ("Lieu Naiss.", fiche.lieu_naissance),
+        ("Situation", fiche.situation_familiale), ("Profession", fiche.profession),
+        ("Téléphone", fiche.telephone), ("Domicile", fiche.domicile_habituel),
+        ("Provenance", fiche.provenance), ("Destination", fiche.destination),
+        ("Transport", fiche.mode_transport), ("Immat.", fiche.immatriculation),
+        ("Type Pièce", fiche.type_piece), ("Num Pièce", fiche.num_piece),
+        ("Délivré le", fiche.date_delivrance), ("Lieu Deliv.", fiche.lieu_delivrance),
+        ("Chambre No", fiche.chambre_num), ("Arrivée", format_date_fr(fiche.date_arrivee)),
+        ("Départ", format_date_fr(fiche.date_depart)),
+    ]
+
+    header_h = 22
+    footer_h = 35   # gap(3) + gap(8) + label(6) + nom(6)+gap(12) + client(6) = 41 -> ajusté ci-dessous
+    footer_h = 41
+    ligne_h = (hauteur_totale - header_h - footer_h) / len(champs)
+    pad = 5
 
     def dessiner_une_fiche(x_start):
-        pdf.set_draw_color(197, 160, 89)
-        pdf.set_line_width(0.5)
-        pdf.rect(x_start, 8, 135, 185)
+        y = y_haut
 
-        pdf.set_xy(x_start, 12)
-        pdf.set_font("Helvetica", "B", 14)
-        pdf.cell(135, 8, latin1("HÔTEL LE PRESTIGE - MARADI"), border=0,
-                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-        pdf.set_x(x_start)
-        pdf.set_font("Helvetica", "I", 10)
-        pdf.cell(135, 6, latin1("Fiche Individuelle de Police"), border=0,
-                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='C')
-        pdf.ln(5)
-
-        def ecrire_ligne(label, valeur):
-            pdf.set_x(x_start + 10)
-            pdf.set_font("Helvetica", "B", 9)
-            pdf.cell(45, 6.5, latin1(f"{label} :"), border=0,
-                     new_x=XPos.RIGHT, new_y=YPos.TOP, align='L')
-            pdf.set_font("Helvetica", "", 9)
-            pdf.cell(75, 6.5, latin1(valeur or 'N/A'), border=0,
-                     new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='L')
-
-        ecrire_ligne("Nom", fiche.nom)
-        ecrire_ligne("Prénom", fiche.prenom)
-        ecrire_ligne("Nationalité", fiche.nationalite)
-        ecrire_ligne("Date de naissance", fiche.date_naissance)
-        ecrire_ligne("Lieu de naissance", fiche.lieu_naissance)
-        ecrire_ligne("Profession", fiche.profession)
-        ecrire_ligne("Téléphone", fiche.telephone)
-        ecrire_ligne("Domicile habituel", fiche.domicile_habituel)
-        ecrire_ligne("Provenance", fiche.provenance)
-        ecrire_ligne("Destination", fiche.destination)
-        ecrire_ligne("Transport", fiche.mode_transport)
-        ecrire_ligne("Immatriculation", fiche.immatriculation)
-        ecrire_ligne("Type de pièce", fiche.type_piece)
-        ecrire_ligne("N° de pièce", fiche.num_piece)
-        ecrire_ligne("Date délivrance", fiche.date_delivrance)
-        ecrire_ligne("Lieu délivrance", fiche.lieu_delivrance)
-        ecrire_ligne("Chambre", f"N° {fiche.chambre_num}")
-        ecrire_ligne("Gérant", fiche.gerant)
-        ecrire_ligne("Arrivée le", format_date_fr(fiche.date_arrivee))
-        ecrire_ligne("Départ le", format_date_fr(fiche.date_depart))
-
-        pdf.set_xy(x_start + 10, 170)
+        pdf.set_xy(x_start, y)
+        pdf.set_font("Helvetica", "B", 15)
+        pdf.cell(col_w, 8, latin1("HÔTEL LE PRESTIGE"), border=0, align='C')
+        pdf.set_xy(x_start, y + 8)
+        pdf.set_font("Helvetica", "", 10)
+        pdf.cell(col_w, 6, latin1("MARADI"), border=0, align='C')
+        pdf.set_xy(x_start, y + 14)
         pdf.set_font("Helvetica", "I", 9)
-        pdf.cell(120, 8, latin1("Signature du client : _____________________"), border=0,
-                 new_x=XPos.LMARGIN, new_y=YPos.NEXT, align='R')
+        pdf.cell(col_w, 5, latin1("Fiche Individuelle de Police"), border=0, align='C')
 
-    dessiner_une_fiche(10)
-    dessiner_une_fiche(152)
+        pdf.line(x_start + 3, y + header_h - 2, x_start + col_w - 3, y + header_h - 2)
+        y += header_h
+
+        for label, valeur in champs:
+            pdf.set_xy(x_start + pad, y)
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.cell(32, ligne_h, latin1(f"{label} :"), border=0, align='L')
+            pdf.set_xy(x_start + pad + 33, y)
+            pdf.set_font("Helvetica", "", 10.5)
+            pdf.cell(col_w - pad - 34, ligne_h, latin1(valeur or 'N/A'), border=0, align='L')
+            y += ligne_h
+
+        y += 3
+        pdf.line(x_start + 3, y, x_start + col_w - 3, y)
+        y += 8
+
+        pdf.set_xy(x_start + pad, y)
+        pdf.set_font("Helvetica", "I", 9.5)
+        pdf.cell(col_w - 2 * pad, 6, latin1("Le Gérant"), border=0, align='L')
+        y += 6
+        pdf.set_xy(x_start + pad, y)
+        pdf.set_font("Helvetica", "B", 10.5)
+        pdf.cell(col_w - 2 * pad, 6, latin1(fiche.gerant or ""), border=0, align='L')
+        y += 12
+        pdf.set_xy(x_start + pad, y)
+        pdf.set_font("Helvetica", "I", 9.5)
+        pdf.cell(col_w - 2 * pad, 6, latin1("Le Client : ......................."), border=0, align='R')
+
+    dessiner_une_fiche(x_gauche)
+    dessiner_une_fiche(x_droite)
+
+    # Un seul cadre autour de l'ensemble + une ligne verticale au milieu
+    pdf.set_draw_color(0, 0, 0)
+    pdf.set_line_width(0.5)
+    pdf.rect(x_gauche, y_haut, (x_droite + col_w) - x_gauche, hauteur_totale)
+    pdf.line(x_milieu, y_haut, x_milieu, y_bas)
 
     return pdf
 
