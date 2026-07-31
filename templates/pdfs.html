@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Archives PDF - Hôtel Le Prestige</title>
-    <!-- Lien vers les polices Google -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -21,8 +20,6 @@
             padding: 40px 20px;
             min-height: 100vh;
         }
-
-        /* ÉCRAN DE CHARGEMENT */
         #loading-screen {
             position: fixed;
             inset: 0;
@@ -46,7 +43,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .loader-text { font-family: 'Cinzel', serif; color: var(--prestige-gold); font-size: 0.9rem; letter-spacing: 3px; }
 
-        /* CONTENEUR PRINCIPAL */
         .container { max-width: 900px; margin: auto; }
         .header-section {
             display: flex;
@@ -56,7 +52,20 @@
             padding-bottom: 20px;
             margin-bottom: 30px;
         }
+        .title-wrapper { display: flex; align-items: baseline; gap: 15px; }
         h1 { font-family: 'Cinzel', serif; letter-spacing: 3px; margin: 0; font-size: 1.8rem; }
+
+        .badge-total {
+            font-size: 0.8rem;
+            color: var(--prestige-gold);
+            font-weight: 700;
+            background: rgba(197, 160, 89, 0.12);
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(197, 160, 89, 0.4);
+            font-family: 'Montserrat', sans-serif;
+        }
+
         #search {
             width: 100%;
             padding: 15px;
@@ -82,16 +91,54 @@
             transition: transform 0.2s;
         }
         li:hover { transform: translateX(5px); }
-        .info-main { display: flex; flex-direction: column; gap: 4px; }
+        .info-main { display: flex; flex-direction: column; gap: 6px; }
         .client-name { font-size: 1.2rem; font-weight: 700; text-transform: uppercase; }
-        .client-sub { font-size: 0.85rem; color: #666; font-weight: 500; }
+        .client-sub { font-size: 0.85rem; color: #555; font-weight: 500; }
         .badge-chambre { background: var(--text-ebony); color: var(--paper-ivory); padding: 2px 8px; border-radius: 3px; font-size: 0.75rem; margin-left: 10px; }
-        .btn-group { display: flex; gap: 12px; align-items: center; }
-        .view-link { text-decoration: none; background: var(--text-ebony); color: var(--paper-ivory); padding: 12px 20px; border-radius: 4px; font-family: 'Cinzel', serif; font-size: 0.8rem; transition: 0.3s; }
+        .btn-group { display: flex; gap: 10px; align-items: center; }
+        .view-link { text-decoration: none; background: var(--text-ebony); color: var(--paper-ivory); padding: 12px 16px; border-radius: 4px; font-family: 'Cinzel', serif; font-size: 0.8rem; transition: 0.3s; }
         .view-link:hover { background: var(--prestige-gold); }
+
+        .btn-edit { text-decoration: none; background: #c5a059; color: white; padding: 12px 16px; border-radius: 4px; font-family: 'Cinzel', serif; font-size: 0.8rem; transition: 0.3s; cursor: pointer; border: none; display: inline-block; }
+        .btn-edit:hover { background: #a68549; }
+
         .btn-delete { background: #fee2e2; color: #ef4444; padding: 12px; border-radius: 4px; cursor: pointer; border: 1px solid #fecaca; }
         .btn-delete:hover { background: #f87171; color: white; }
         .btn-back { text-decoration: none; color: var(--text-ebony); font-weight: 700; }
+
+        #admin-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: var(--paper-ivory);
+            padding: 30px;
+            border-radius: 6px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-top: 4px solid var(--prestige-gold);
+            text-align: center;
+        }
+        .modal-content h3 { font-family: 'Cinzel', serif; margin-top: 0; color: var(--text-ebony); }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid rgba(197, 160, 89, 0.4);
+            border-radius: 4px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-btn-confirm { background: var(--prestige-gold); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Cinzel', serif; }
+        .modal-btn-cancel { background: #ccc; color: #333; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        #modal-error { color: #ef4444; font-size: 0.85rem; margin-bottom: 10px; display: none; }
     </style>
 </head>
 <body>
@@ -101,13 +148,30 @@
         <div class="loader-text">Chargement des Archives...</div>
     </div>
 
+    <!-- MODAL DE SÉCURITÉ ADMIN : utilisée uniquement pour la suppression -->
+    <div id="admin-modal">
+        <div class="modal-content">
+            <h3>🔒 Authentification Administrateur</h3>
+            <p style="font-size: 0.85rem; color: #555;">Veuillez entrer le mot de passe administrateur pour supprimer ce dossier.</p>
+            <div id="modal-error">Mot de passe incorrect.</div>
+            <input type="password" id="admin-password-input" placeholder="Mot de passe admin">
+            <div class="modal-actions">
+                <button type="button" class="modal-btn-cancel" onclick="fermerModalAdmin()">Annuler</button>
+                <button type="button" class="modal-btn-confirm" onclick="validerMotDePasseAdmin()">Valider</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header-section">
-            <h1>Archives PDF</h1>
+            <div class="title-wrapper">
+                <h1>Archives PDF</h1>
+                <span class="badge-total">Total : {{ clients|length }}</span>
+            </div>
             <a href="{{ url_for('dashboard') }}" class="btn-back">⬅ Dashboard</a>
         </div>
 
-        <input type="text" id="search" placeholder="Rechercher un nom, une chambre, un gérant ou une provenance..." onkeyup="filtrer()">
+        <input type="text" id="search" placeholder="Rechercher un nom, une chambre, un gérant, une date ou une provenance..." onkeyup="filtrer()">
 
         <ul id="liste-clients">
             {% for client in clients %}
@@ -120,12 +184,21 @@
                         <span class="client-name">{{ client.nom }} {{ client.prenom }}</span>
                         <span class="badge-chambre">Ch. {{ client.chambre_num }}</span>
                     </div>
+                    <span class="client-sub">
+                        🏨 Séjour : <strong>{{ client.date_arrivee.strftime('%d/%m/%Y') if client.date_arrivee else 'N/A' }}</strong> au <strong>{{ client.date_depart.strftime('%d/%m/%Y') if client.date_depart else 'N/A' }}</strong>
+                    </span>
                     <span class="client-sub">🌍 Provenance : <strong>{{ client.provenance or 'N/A' }}</strong> | 📞 {{ client.telephone or 'N/A' }}</span>
                 </div>
                 <div class="btn-group">
-                    <a href="{{ client.pdf_url }}" target="_blank" class="view-link">📄 Ouvrir le PDF</a>
-                    <form method="post" action="{{ url_for('supprimer_pdf', id=client.id) }}" onsubmit="return confirm('Supprimer ce dossier ?');">
-                        <button type="submit" class="btn-delete" title="Supprimer le dossier">🗑️</button>
+                    <a href="{{ client.pdf_url }}" target="_blank" class="view-link">📄 Ouvrir</a>
+
+                    <!-- Lien direct : le mot de passe est demandé sur la page de modification elle-même -->
+                    <a href="{{ url_for('modifier_dates', id=client.id) }}" class="btn-edit">✏️ Modifier</a>
+
+                    <!-- FORMULAIRE SUPPRIMER : le mot de passe part avec le formulaire -->
+                    <form id="delete-form-{{ client.id }}" method="post" action="{{ url_for('supprimer_pdf', id=client.id) }}" style="margin:0;">
+                        <input type="hidden" name="admin_password" id="pwd-{{ client.id }}">
+                        <button type="button" class="btn-delete" title="Supprimer le dossier" onclick="demanderAdminSuppression('delete-form-{{ client.id }}', '{{ client.id }}')">🗑️</button>
                     </form>
                 </div>
             </li>
@@ -134,6 +207,8 @@
     </div>
 
     <script>
+        let actionCallback = null;
+
         window.addEventListener('load', () => {
             const screen = document.getElementById('loading-screen');
             if (screen) {
@@ -150,6 +225,57 @@
                 li.style.display = texte.includes(val) ? "flex" : "none";
             });
         }
+
+        function demanderAdminSuppression(formId, clientId) {
+            document.getElementById('admin-password-input').value = '';
+            document.getElementById('modal-error').style.display = 'none';
+            document.getElementById('admin-modal').style.display = 'flex';
+            document.getElementById('admin-password-input').focus();
+
+            actionCallback = (password) => {
+                if (confirm('Voulez-vous vraiment supprimer ce dossier ?')) {
+                    const form = document.getElementById(formId);
+                    document.getElementById('pwd-' + clientId).value = password;
+                    form.submit();
+                }
+            };
+        }
+
+        function fermerModalAdmin() {
+            document.getElementById('admin-modal').style.display = 'none';
+            actionCallback = null;
+        }
+
+        async function validerMotDePasseAdmin() {
+            const password = document.getElementById('admin-password-input').value;
+            const errorEl = document.getElementById('modal-error');
+
+            try {
+                const response = await fetch('/verifier_mdp_admin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const cb = actionCallback;
+                    fermerModalAdmin();
+                    if (cb) cb(password);
+                } else {
+                    errorEl.style.display = 'block';
+                }
+            } catch (e) {
+                errorEl.textContent = "Erreur de connexion au serveur.";
+                errorEl.style.display = 'block';
+            }
+        }
+
+        document.getElementById('admin-password-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validerMotDePasseAdmin();
+            }
+        });
     </script>
 </body>
 </html>

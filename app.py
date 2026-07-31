@@ -10,7 +10,7 @@ import hmac
 import calendar
 import unicodedata
 from datetime import datetime, timedelta, timezone
-from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash
+from flask import Flask, render_template, request, redirect, url_for, session, make_response, flash, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text
 from fpdf import FPDF, XPos, YPos
@@ -45,12 +45,11 @@ MOIS_NOMS = ["", "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet
 
 CHAMPS_AUTORISES = [
     "nom", "prenom", "nationalite", "date_naissance", "lieu_naissance",
-    "situation_familiale", "profession", "telephone", "domicile_habituel",
+    "profession", "telephone", "domicile_habituel",
     "provenance", "destination", "mode_transport", "immatriculation",
     "type_piece", "num_piece", "date_delivrance", "lieu_delivrance", "chambre_num"
 ]
 
-# Liste de référence unique pour toute l'application (utilisée pour les stats et le PDF)
 LISTE_CATEGORIES = [
     "Résidents nationaux", "Résidents étrangers", "Pays de l'UEMOA", "Nigeria",
     "CEDEAO hors UEMOA", "Autres pays d'Afrique", "France", "Allemagne",
@@ -70,7 +69,6 @@ class FicheClient(db.Model):
     nationalite = db.Column(db.String(50))
     date_naissance = db.Column(db.String(50))
     lieu_naissance = db.Column(db.String(100))
-    situation_familiale = db.Column(db.String(50))
     profession = db.Column(db.String(100))
     telephone = db.Column(db.String(50))
     domicile_habituel = db.Column(db.String(255))
@@ -102,13 +100,32 @@ def latin1(t):
     return str(t if t else "").encode("latin-1", errors="replace").decode("latin-1")
 
 def format_date_fr(date_str):
+    """Convertit une date (objet date ou string ISO) en JJ-MM-AAAA pour l'affichage."""
+    if not date_str:
+        return ""
     try:
-        return datetime.strptime(str(date_str), '%Y-%m-%d').strftime('%d/%m/%Y')
+        return datetime.strptime(str(date_str), '%Y-%m-%d').strftime('%d-%m-%Y')
     except Exception:
         return str(date_str)
 
+# Filtre Jinja : {{ fiche.date_arrivee|fr }} -> affiche en JJ-MM-AAAA dans les templates
+app.jinja_env.filters['fr'] = format_date_fr
+
 def verifier_mot_de_passe(saisi):
-    return hmac.compare_digest(saisi, os.environ.get("ADMIN_PASSWORD", "admin123"))
+    pwd_env = os.environ.get("ADMIN_PASSWORD", "admin123")
+    if pwd_env:
+        pwd_env = pwd_env.strip()
+    saisi_propre = str(saisi or "").strip()
+    return hmac.compare_digest(saisi_propre, pwd_env)
+
+@app.route('/verifier_mdp_admin', methods=['POST'])
+def verifier_mdp_admin():
+    """Pré-vérification AJAX (UX uniquement) : ne pose plus de flag en session.
+    La vérification réelle et autoritaire se fait toujours côté route au moment
+    de l'action (suppression / modification)."""
+    data = request.get_json() or {}
+    password = data.get('password', '')
+    return jsonify({'success': bool(password) and verifier_mot_de_passe(password)})
 
 def normaliser(texte):
     if not texte:
@@ -392,7 +409,7 @@ def generer_pdf_individuel(fiche):
     champs = [
         ("Nom", fiche.nom), ("Prénom", fiche.prenom), ("Nationalité", fiche.nationalite),
         ("Date Naiss.", fiche.date_naissance), ("Lieu Naiss.", fiche.lieu_naissance),
-        ("Situation", fiche.situation_familiale), ("Profession", fiche.profession),
+        ("Profession", fiche.profession),
         ("Téléphone", fiche.telephone), ("Domicile", fiche.domicile_habituel),
         ("Provenance", fiche.provenance), ("Destination", fiche.destination),
         ("Transport", fiche.mode_transport), ("Immat.", fiche.immatriculation),
@@ -403,7 +420,6 @@ def generer_pdf_individuel(fiche):
     ]
 
     header_h = 22
-    footer_h = 35   # gap(3) + gap(8) + label(6) + nom(6)+gap(12) + client(6) = 41 -> ajusté ci-dessous
     footer_h = 41
     ligne_h = (hauteur_totale - header_h - footer_h) / len(champs)
     pad = 5
@@ -452,13 +468,101 @@ def generer_pdf_individuel(fiche):
     dessiner_une_fiche(x_gauche)
     dessiner_une_fiche(x_droite)
 
-    # Un seul cadre autour de l'ensemble + une ligne verticale au milieu
     pdf.set_draw_color(0, 0, 0)
     pdf.set_line_width(0.5)
     pdf.rect(x_gauche, y_haut, (x_droite + col_w) - x_gauche, hauteur_totale)
     pdf.line(x_milieu, y_haut, x_milieu, y_bas)
 
     return pdf
+
+def creer_ou_mettre_a_jour_pdf_cloudinary(fiche):
+    if fiche.cloudinary_id:
+        try:
+            cloudinary.uploader.destroy(fiche.cloudinary_id, resource_type="raw")
+        except Exception:
+            pass
+
+    pdf_individuel = generer_pdf_individuel(fiche)
+    raw_pdf = pdf_individuel.output()
+    pdf_bytes = raw_pdf.encode('latin-1', errors='replace') if isinstance(raw_pdf, str) else raw_pdf
+    pdf_buffer = io.BytesIO(pdf_bytes)
+    pdf_buffer.seek(0)
+
+    upload_result = cloudinary.uploader.upload(
+        pdf_buffer,
+        resource_type="raw",
+        folder="fiches_prestige",
+        public_id=f"fiche_{fiche.nom}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    )
+
+    fiche.pdf_url = upload_result.get("secure_url")
+    fiche.cloudinary_id = upload_result.get("public_id")
+
+@app.route('/modifier/<int:id>', methods=['GET'])
+def modifier_dates(id):
+    if not utilisateur_connecte():
+        return redirect(url_for('gerant'))
+    fiche_obj = FicheClient.query.get_or_404(id)
+    return render_template('modifier_dates.html', fiche=fiche_obj, erreur=None)
+
+@app.route('/mettre_a_jour_sejour/<int:id>', methods=['POST'])
+def mettre_a_jour_sejour(id):
+    if not utilisateur_connecte():
+        return redirect(url_for('gerant'))
+
+    ancien_client = FicheClient.query.get_or_404(id)
+
+    mdp = request.form.get('admin_password')
+    if not mdp or not verifier_mot_de_passe(mdp):
+        return render_template('modifier_dates.html', fiche=ancien_client, erreur="Mot de passe administrateur incorrect.")
+
+    d_arr = request.form.get('date_arrivee')
+    d_dep = request.form.get('date_depart')
+    nouvelle_chambre = request.form.get('chambre_num')
+
+    try:
+        date_arrivee_obj = datetime.strptime(d_arr, '%d-%m-%Y').date() if d_arr else None
+        date_depart_obj = datetime.strptime(d_dep, '%d-%m-%Y').date() if d_dep else None
+    except ValueError:
+        return render_template('modifier_dates.html', fiche=ancien_client, erreur="Format de date invalide. Utilisez JJ-MM-AAAA.")
+
+    if date_arrivee_obj and date_depart_obj and date_depart_obj <= date_arrivee_obj:
+        return render_template('modifier_dates.html', fiche=ancien_client, erreur="La date de départ doit être après la date d'arrivée.")
+
+    nouvelle_fiche = FicheClient(
+        nom=ancien_client.nom,
+        prenom=ancien_client.prenom,
+        nationalite=ancien_client.nationalite,
+        date_naissance=ancien_client.date_naissance,
+        lieu_naissance=ancien_client.lieu_naissance,
+        profession=ancien_client.profession,
+        telephone=ancien_client.telephone,
+        domicile_habituel=ancien_client.domicile_habituel,
+        provenance=ancien_client.provenance,
+        destination=ancien_client.destination,
+        mode_transport=ancien_client.mode_transport,
+        immatriculation=ancien_client.immatriculation,
+        type_piece=ancien_client.type_piece,
+        num_piece=ancien_client.num_piece,
+        date_delivrance=ancien_client.date_delivrance,
+        lieu_delivrance=ancien_client.lieu_delivrance,
+        chambre_num=nouvelle_chambre if nouvelle_chambre else ancien_client.chambre_num,
+        hotel=ancien_client.hotel,
+        gerant=ancien_client.gerant,
+        date_arrivee=date_arrivee_obj,
+        date_depart=date_depart_obj
+    )
+
+    try:
+        creer_ou_mettre_a_jour_pdf_cloudinary(nouvelle_fiche)
+        db.session.add(nouvelle_fiche)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return render_template('modifier_dates.html', fiche=ancien_client, erreur=f"Erreur lors de l'enregistrement : {str(e)}")
+
+    flash("Nouvelle fiche de séjour générée et ajoutée aux archives avec succès !", "success")
+    return redirect(url_for('pdfs'))
 
 def pdf_response(pdf, nom):
     pdf_bytes = pdf.output()
@@ -555,17 +659,12 @@ def releve():
     mois = int(request.args.get('mois', now.month))
     annee = int(request.args.get('annee', now.year))
 
-    # Stats du mois
     stats_data = calculer_stats_logique(mois, annee)
     total_voyageurs = sum(stats_data["nationalites"].values())
 
-    # --- NOUVEAU : Récupération ou simulation des listes journalières (Entrées et Sorties) ---
-    # Supposons que votre fonction de calcul renvoie ou que vous génériez des listes de taille 31 (pour les 31 jours)
-    # Exemple : stats_data.get('entrees_jours', [0]*31) et stats_data.get('sorties_jours', [0]*31)
     entrees_jours = stats_data.get('entrees_jours', [2, 1, 0, 4, 3, 1, 0, 5, 2, 1, 0, 3, 4, 2, 1, 0, 2, 3, 1, 4, 2, 0, 1, 3, 2, 1, 0, 2, 1, 3, 1])
     sorties_jours = stats_data.get('sorties_jours', [1, 2, 1, 2, 3, 2, 0, 3, 3, 1, 1, 2, 3, 3, 1, 0, 1, 2, 2, 3, 1, 1, 0, 2, 3, 1, 1, 1, 2, 2, 1])
 
-    # Calcul variation mois précédent...
     mois_prec = 12 if mois == 1 else mois - 1
     annee_prec = annee - 1 if mois == 1 else annee
     stats_prec = calculer_stats_logique(mois_prec, annee_prec)
@@ -573,14 +672,13 @@ def releve():
     variation_voyageurs = round(((total_voyageurs - total_voyageurs_prec) / total_voyageurs_prec) * 100, 1) if total_voyageurs_prec > 0 else 0.0
 
     return render_template(
-        'releve.html', 
-        stats=stats_data, 
+        'releve.html',
+        stats=stats_data,
         total_voyageurs=total_voyageurs,
         variation_voyageurs=variation_voyageurs,
         entrees_jours=entrees_jours,
         sorties_jours=sorties_jours
     )
-
 
 @app.route('/fiche', methods=['GET', 'POST'])
 def fiche():
@@ -599,7 +697,6 @@ def fiche():
                 nationalite=request.form.get('nationalite'),
                 date_naissance=request.form.get('date_naissance') or None,
                 lieu_naissance=request.form.get('lieu_naissance'),
-                situation_familiale=request.form.get('situation_familiale'),
                 profession=request.form.get('profession'),
                 telephone=request.form.get('telephone'),
                 domicile_habituel=request.form.get('domicile_habituel'),
@@ -618,21 +715,7 @@ def fiche():
                 date_depart=datetime.strptime(d_dep, '%d/%m/%Y').date() if d_dep else None
             )
 
-            pdf_individuel = generer_pdf_individuel(nouvelle_fiche)
-            raw_pdf = pdf_individuel.output()
-            pdf_bytes = raw_pdf.encode('latin-1', errors='replace') if isinstance(raw_pdf, str) else raw_pdf
-            pdf_buffer = io.BytesIO(pdf_bytes)
-            pdf_buffer.seek(0)
-
-            upload_result = cloudinary.uploader.upload(
-                pdf_buffer,
-                resource_type="raw",
-                folder="fiches_prestige",
-                public_id=f"fiche_{nouvelle_fiche.nom}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
-            )
-
-            nouvelle_fiche.pdf_url = upload_result.get("secure_url")
-            nouvelle_fiche.cloudinary_id = upload_result.get("public_id")
+            creer_ou_mettre_a_jour_pdf_cloudinary(nouvelle_fiche)
 
             db.session.add(nouvelle_fiche)
             db.session.commit()
@@ -666,12 +749,19 @@ def supprimer_pdf(id):
     if not utilisateur_connecte():
         return redirect(url_for('gerant'))
 
+    # Vérification autoritaire du mot de passe directement dans le formulaire
+    # (ne dépend plus d'un flag posé en session par un appel AJAX séparé)
+    if not verifier_mot_de_passe(request.form.get('admin_password')):
+        abort(403)
+
     client = FicheClient.query.get_or_404(id)
+
     if client.cloudinary_id:
         try:
-            cloudinary.uploader.destroy(client.cloudinary_id, resource_type="raw")
-        except Exception:
-            pass
+            result = cloudinary.uploader.destroy(client.cloudinary_id, resource_type="raw")
+            print("Résultat suppression Cloudinary :", result)
+        except Exception as e:
+            print("ERREUR CLOUDINARY:", str(e))
 
     db.session.delete(client)
     db.session.commit()

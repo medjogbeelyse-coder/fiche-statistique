@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifier le Séjour - Hôtel Le Prestige</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --prestige-gold: #c5a059;
+            --prestige-gold-dark: #a68549;
+            --paper-ivory: #fdfaf1;
+            --sand-bg: #e8e2d6;
+            --text-ebony: #2c2c2c;
+            --border-soft: rgba(197, 160, 89, 0.4);
+            --error-red: #c0392b;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sand-bg);
+            background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+            color: var(--text-ebony);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--paper-ivory);
+            padding: 50px;
+            border-radius: 2px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.15);
+            border: 1px solid var(--border-soft);
+            position: relative;
+        }
+
+        header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid var(--prestige-gold); padding-bottom: 20px; }
+        header h2 { font-family: 'Cinzel', serif; font-size: 1.8rem; letter-spacing: 3px; margin: 0; text-transform: uppercase; }
+        header p { font-size: 0.85rem; letter-spacing: 2px; color: var(--prestige-gold); margin-top: 8px; font-weight: 600; }
+
+        .client-info-box {
+            background: rgba(197, 160, 89, 0.08);
+            border: 1px dashed var(--prestige-gold);
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .section-title { font-family: 'Cinzel', serif; color: var(--prestige-gold); background: rgba(197, 160, 89, 0.08); padding: 10px 15px; margin: 30px 0 20px 0; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; border-left: 4px solid var(--prestige-gold); }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #555; margin-bottom: 8px; font-weight: 600; }
+        .required-mark { color: var(--error-red); }
+
+        input, select { background: rgba(255, 255, 255, 0.7); border: 1px solid var(--border-soft); padding: 12px; border-radius: 0; color: var(--text-ebony); font-family: 'Montserrat', sans-serif; font-size: 14px; transition: all 0.3s ease; }
+        input:focus, select:focus { outline: none; border-color: var(--prestige-gold); background: white; box-shadow: 0 5px 15px rgba(197, 160, 89, 0.1); }
+        input.field-error, select.field-error { border-color: var(--error-red) !important; background-color: #fff9f9; }
+
+        .btn-valider { background: var(--text-ebony); color: var(--paper-ivory); border: 1px solid var(--text-ebony); padding: 18px; width: 100%; font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 700; letter-spacing: 3px; cursor: pointer; margin-top: 40px; transition: all 0.4s; }
+        .btn-valider:hover { background: var(--prestige-gold); border-color: var(--prestige-gold); color: white; }
+        .back-link { display: block; text-align: center; margin-top: 25px; color: #888; text-decoration: none; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; }
+        .alert-box { background: #fdecea; color: #8b1e1e; padding: 15px; margin-bottom: 25px; border-left: 5px solid var(--error-red); font-size: 14px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h2>Modifier le Séjour</h2>
+        <p>Hôtel Le Prestige - Maradi</p>
+    </header>
+
+    <div class="client-info-box">
+        Client : {{ fiche.nom }} {{ fiche.prenom }}
+    </div>
+
+    {% if erreur %}
+    <div class="alert-box" style="display: block;">⚠️ {{ erreur }}</div>
+    {% endif %}
+
+    <div id="js-error" class="alert-box">⚠️ Veuillez respecter le format des dates JJ-MM-AAAA (la date de départ doit être après l'arrivée).</div>
+
+    <form action="{{ url_for('mettre_a_jour_sejour', id=fiche.id) }}" method="POST" id="updateForm" novalidate>
+
+        <div class="section-title">Mise à jour des dates et de la chambre</div>
+        <div class="grid">
+            <div class="form-group">
+                <label>Numéro de Chambre / Suite <span class="required-mark">*</span></label>
+                <select name="chambre_num" required>
+                    {% for i in range(1, 11) %}
+                    <option value="{{ '%02d' % i }}" {% if fiche.chambre_num == ('%02d' % i) %}selected{% endif %}>Suite {{ '%02d' % i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Date d'Arrivée <span class="required-mark">*</span></label>
+                <input type="text" name="date_arrivee" id="arr" class="date-mask" value="{{ fiche.date_arrivee|fr }}" placeholder="JJ-MM-AAAA" maxlength="10" required>
+            </div>
+
+            <div class="form-group">
+                <label>Date de Départ Prévue <span class="required-mark">*</span></label>
+                <input type="text" name="date_depart" id="dep" class="date-mask" value="{{ fiche.date_depart|fr }}" placeholder="JJ-MM-AAAA" maxlength="10" required>
+            </div>
+
+            <div class="form-group">
+                <label>Mot de passe Administrateur <span class="required-mark">*</span></label>
+                <input type="password" name="admin_password" placeholder="Entrez le mot de passe admin" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-valider">💾 ENREGISTRER LES MODIFICATIONS</button>
+    </form>
+
+    <a href="{{ url_for('pdfs') }}" class="back-link">⬅ Retour aux archives</a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('updateForm');
+        const jsError = document.getElementById('js-error');
+        const dateMasks = document.querySelectorAll('.date-mask');
+
+        dateMasks.forEach(input => {
+            input.addEventListener('input', function(e) {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 4) e.target.value = v.slice(0, 2) + '-' + v.slice(2, 4) + '-' + v.slice(4, 8);
+                else if (v.length > 2) e.target.value = v.slice(0, 2) + '-' + v.slice(2);
+                else e.target.value = v;
+            });
+        });
+
+        form.onsubmit = function(e) {
+            let error = false;
+            jsError.style.display = 'none';
+            document.querySelectorAll('input').forEach(el => el.classList.remove('field-error'));
+
+            const parseDate = (str) => {
+                const p = str.split('-');
+                return new Date(p[2], p[1] - 1, p[0]);
+            };
+
+            const arrVal = document.getElementById('arr').value;
+            const depVal = document.getElementById('dep').value;
+
+            if (arrVal.length !== 10 || depVal.length !== 10 || parseDate(depVal) <= parseDate(arrVal)) {
+                document.getElementById('dep').classList.add('field-error');
+                error = true;
+            }
+
+            if (error) {
+                e.preventDefault();
+                jsError.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+    });
+</script>
+
+</body>
+</html>
