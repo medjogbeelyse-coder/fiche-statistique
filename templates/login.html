@@ -13,22 +13,24 @@
         }
 
         :root {
-            --obsidienne: #0a0908;
-            --carte: #14110d;
-            --laiton: #b8934a;
-            --laiton-clair: #d9b978;
-            --champagne: #e9ddbe;
-            --ivoire: #f4f0e6;
-            --filet: #35301f;
+            --fond-principal: #f7f5f0;
+            --carte-fond: #ffffff;
+            --couleur-texte: #2d2a26;
+            --cuivre: #b87333;
+            --cuivre-fonce: #965a25;
+            --filet: #e2ded4;
+            --erreur-fond: #fdf2f2;
+            --erreur-bord: #f5c6cb;
+            --erreur-texte: #9e2a2b;
         }
 
         body {
-            background: var(--obsidienne);
+            background: var(--fond-principal);
             background-image:
-                radial-gradient(ellipse 70% 50% at 50% -10%, rgba(184, 147, 74, 0.10), transparent),
-                radial-gradient(ellipse 60% 40% at 50% 110%, rgba(184, 147, 74, 0.06), transparent);
+                radial-gradient(ellipse 70% 50% at 50% -10%, rgba(184, 115, 51, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 50% 110%, rgba(184, 115, 51, 0.04), transparent);
             font-family: 'Inter', sans-serif;
-            color: var(--ivoire);
+            color: var(--couleur-texte);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -40,11 +42,11 @@
             position: relative;
             width: 420px;
             max-width: 100%;
-            background: linear-gradient(175deg, var(--carte), #0d0b08);
+            background: linear-gradient(175deg, var(--carte-fond), #faf8f5);
             border: 1px solid var(--filet);
             padding: 56px 44px 40px;
             text-align: center;
-            box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 20px 40px -15px rgba(45, 42, 38, 0.1);
             opacity: 0;
             transform: translateY(14px);
             animation: entree 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -54,7 +56,13 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Coins d'angle — motif art déco discret, remplace l'effet miroir */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+        }
+
+        /* Coins d'angle art déco */
         .login-box::before,
         .login-box::after,
         .coin-bd,
@@ -63,8 +71,8 @@
             position: absolute;
             width: 22px;
             height: 22px;
-            border: 1px solid var(--laiton);
-            opacity: 0.7;
+            border: 1px solid var(--cuivre);
+            opacity: 0.6;
         }
         .login-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
         .login-box::after  { top: -1px; right: -1px; border-left: none; border-bottom: none; }
@@ -76,7 +84,7 @@
             width: 56px;
             height: 56px;
             margin: 0 auto 22px;
-            border: 1px solid var(--laiton);
+            border: 1px solid var(--cuivre);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -85,7 +93,8 @@
             font-size: 1.15em;
             font-weight: 500;
             letter-spacing: 1px;
-            color: var(--laiton-clair);
+            color: var(--cuivre-fonce);
+            background: rgba(184, 115, 51, 0.04);
         }
 
         .login-box h1 {
@@ -93,7 +102,7 @@
             font-weight: 600;
             font-size: 1.85em;
             letter-spacing: 0.3px;
-            color: var(--ivoire);
+            color: var(--couleur-texte);
             margin-bottom: 10px;
         }
 
@@ -108,7 +117,7 @@
             font-size: 0.72em;
             letter-spacing: 3px;
             text-transform: uppercase;
-            color: var(--laiton);
+            color: var(--cuivre);
             font-weight: 500;
         }
         .divider::before,
@@ -120,14 +129,15 @@
         }
 
         .erreur {
-            background: rgba(163, 58, 58, 0.12);
-            border: 1px solid #7a3a3a;
-            color: #e7a3a3;
+            background: var(--erreur-fond);
+            border: 1px solid var(--erreur-bord);
+            color: var(--erreur-texte);
             padding: 11px 14px;
             margin-bottom: 24px;
             font-size: 0.85em;
             font-weight: 500;
             text-align: left;
+            animation: shake 0.4s ease-in-out;
         }
 
         .form-group {
@@ -137,7 +147,7 @@
 
         .form-group label {
             display: block;
-            color: var(--laiton-clair);
+            color: var(--cuivre-fonce);
             margin-bottom: 9px;
             font-weight: 600;
             font-size: 0.72em;
@@ -145,31 +155,30 @@
             text-transform: uppercase;
         }
 
-        /* Champs sobres, style registre — filet inférieur plutôt que boîte */
         .form-group input {
             width: 100%;
-            padding: 10px 2px;
+            padding: 10px 8px;
             border: none;
             border-bottom: 1px solid var(--filet);
             background: transparent;
-            color: var(--ivoire);
+            color: var(--couleur-texte);
             font-size: 1em;
             font-family: 'Inter', sans-serif;
-            transition: border-color 0.25s ease;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
 
         .form-group input::placeholder {
-            color: #5c5648;
+            color: #b3aea3;
         }
 
         .form-group input:focus {
             outline: none;
-            border-bottom-color: var(--laiton);
+            border-bottom-color: var(--cuivre);
+            box-shadow: 0 4px 12px -4px rgba(184, 115, 51, 0.25);
         }
 
-        /* Focus clavier visible, distinct du simple hover */
         .form-group input:focus-visible {
-            outline: 2px solid var(--laiton-clair);
+            outline: 2px solid var(--cuivre);
             outline-offset: 4px;
         }
 
@@ -177,38 +186,42 @@
             width: 100%;
             padding: 14px;
             margin-top: 6px;
-            border: 1px solid var(--laiton);
-            background: transparent;
-            color: var(--laiton-clair);
+            border: 1px solid var(--cuivre);
+            background: var(--cuivre);
+            color: #ffffff;
             cursor: pointer;
             font-family: 'Inter', sans-serif;
             font-size: 0.8em;
             font-weight: 600;
             letter-spacing: 2px;
             text-transform: uppercase;
-            transition: background 0.3s ease, color 0.3s ease;
+            transition: background 0.3s ease, border-color 0.3s ease, transform 0.1s ease;
         }
 
         .btn:hover {
-            background: var(--laiton);
-            color: var(--obsidienne);
+            background: var(--cuivre-fonce);
+            border-color: var(--cuivre-fonce);
+        }
+
+        .btn:active {
+            transform: scale(0.99);
         }
 
         .btn:focus-visible {
-            outline: 2px solid var(--laiton-clair);
+            outline: 2px solid var(--cuivre);
             outline-offset: 4px;
         }
 
         .footer {
             margin-top: 30px;
-            color: #6b6455;
+            color: #8c8576;
             font-size: 0.72em;
             letter-spacing: 0.5px;
             line-height: 1.7;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .login-box {
+            .login-box, .erreur {
                 animation: none;
                 opacity: 1;
                 transform: none;
